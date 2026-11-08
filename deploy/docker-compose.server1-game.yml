@@ -1,0 +1,39 @@
+# ============================================================================
+# SERVIDOR PRIVADO 1: MOTOR DEL MUNDO EN TIEMPO REAL (500+ JUGADORES CCU)
+# ============================================================================
+version: '3.9'
+
+services:
+  the-quest-world-engine:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: the-quest-world-engine
+    restart: always
+    ports:
+      - "80:3000"
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - REDIS_URL=redis://the-quest-redis:6379
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    depends_on:
+      - the-quest-redis
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+
+  the-quest-redis:
+    image: redis:7-alpine
+    container_name: the-quest-redis
+    restart: always
+    command: redis-server --save 60 1 --loglevel warning
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:

@@ -1,0 +1,31 @@
+# ============================================================================
+# SERVIDOR PRIVADO 2: PERSISTENCIA POSTGRESQL + VOZ ESPACIAL WEBRTC (LIVEKIT)
+# ============================================================================
+version: '3.9'
+
+services:
+  the-quest-postgres:
+    image: postgres:16-alpine
+    container_name: the-quest-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: oasis_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-oasis_secret_2026}
+      POSTGRES_DB: the_quest_mmo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
+  the-quest-spatial-voice:
+    image: livekit/livekit-server:latest
+    container_name: the-quest-spatial-voice
+    restart: always
+    command: --dev --bind 0.0.0.0
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "7882:7882/udp"
+
+volumes:
+  pg_data:

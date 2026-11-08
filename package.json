@@ -1,0 +1,21 @@
+{
+  "name": "the-quest-oasis-mmo",
+  "version": "1.0.0",
+  "description": "The Quest - Open Source Ready Player One inspired Cross-Platform MMORPG (PC + Mobile Touch + 500 CCU Spatial AoI + AI Oracle)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "server": "node server/index.js",
+    "start": "node server/index.js",
+    "stress-test": "node server/stressTest500.js"
+  },
+  "dependencies": {
+    "three": "^0.170.0",
+    "ws": "^8.18.0",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
+}
