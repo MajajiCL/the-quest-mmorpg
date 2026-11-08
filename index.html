@@ -34,7 +34,7 @@
     <div class="showcase-bottom-dock">
       <div class="character-info-bar">
         <div class="char-meta">
-          <span id="char-role-tag" class="char-role-tag">INFANTERÍA DE RECONOCIMIENTO • ARMADURA PESADA</span>
+          <span id="char-role-tag" class="char-role-tag">PALADÍN SOLAR (STR / VIT) • VANGUARDIA DE ASALTO</span>
           <h2 id="char-display-name" class="char-display-name">COMANDANTE VANGUARD</h2>
         </div>
         <div class="name-input-wrap">
@@ -44,40 +44,40 @@
       </div>
 
       <div class="class-carousel" id="avatar-selector">
-        <button type="button" class="class-card active" data-avatar="Vanguard" data-title="COMANDANTE VANGUARD" data-role="INFANTERÍA TÁCTICA • VISOR ÁMBAR">
+        <button type="button" class="class-card active" data-avatar="Vanguard" data-title="COMANDANTE VANGUARD" data-role="PALADÍN SOLAR (STR / VIT) • FRENTE PESADO">
           <span class="class-badge">01</span>
           <span class="class-name">Vanguard</span>
-          <span class="class-sub">Comandante</span>
+          <span class="class-sub">Paladín STR/VIT</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="Elena" data-title="VALQUIRIA ELENA" data-role="EXOTRAJE DE MARFIL Y ORO • AGILIDAD">
+        <button type="button" class="class-card" data-avatar="Elena" data-title="VALQUIRIA ELENA" data-role="ARCONTE ASTRAL (INT / DEX) • SABIDURÍA Y SOPORTE">
           <span class="class-badge">02</span>
           <span class="class-name">Elena</span>
-          <span class="class-sub">Valquiria</span>
+          <span class="class-sub">Valquiria INT/DEX</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="ShadowOps" data-title="ESPECTRO DE OBSIDIANA" data-role="INFILTRACIÓN ORBITAL • NÚCLEO CARMESÍ">
+        <button type="button" class="class-card" data-avatar="ShadowOps" data-title="EJECUTOR DE OBSIDIANA" data-role="ASESINO SOMBRA (AGI / LUK) • VELOCIDAD Y CRÍTICO">
           <span class="class-badge">03</span>
           <span class="class-name">Espectro</span>
-          <span class="class-sub">Obsidiana</span>
+          <span class="class-sub">Sombra AGI/LUK</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="Kael" data-title="ARCONTE KAEL" data-role="PILOTO INTERPLANETARIO • CORONA ASTRAL">
+        <button type="button" class="class-card" data-avatar="Kael" data-title="CAZADOR ESTELAR KAEL" data-role="ARTILLERO ORBITAL (DEX / AGI) • PRECISIÓN Y VUELO">
           <span class="class-badge">04</span>
           <span class="class-name">Kael</span>
-          <span class="class-sub">Piloto Astral</span>
+          <span class="class-sub">Cazador DEX/AGI</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="DesertRanger" data-title="CENTURIÓN SOLAR" data-role="GUARDIA PRETORIANA • ACERO DORADO">
+        <button type="button" class="class-card" data-avatar="DesertRanger" data-title="MAESTRO FORJADOR SOLAR" data-role="ARTESANO PRETORIANO (STR / LUK) • FORJA Y MINERÍA">
           <span class="class-badge">05</span>
           <span class="class-name">Centurión</span>
-          <span class="class-sub">Pretoriano</span>
+          <span class="class-sub">Forjador STR/LUK</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="Aegis" data-title="CENTINELA AEGIS" data-role=" CHASIS DE COBALTO • ESPACIO PROFUNDO">
+        <button type="button" class="class-card" data-avatar="Aegis" data-title="GUARDIÁN AEGIS" data-role="COLOSO DE COBALTO (VIT / INT) • ESCUDO DE ALIANZA">
           <span class="class-badge">06</span>
           <span class="class-name">Aegis</span>
-          <span class="class-sub">Centinela</span>
+          <span class="class-sub">Guardián VIT/INT</span>
         </button>
 
         <label class="class-card upload-card" for="custom-glb-input">
@@ -89,7 +89,7 @@
       </div>
 
       <button id="btn-start-world" class="btn-luxury-enter">
-        <span>DESPLEGAR EN LA CIUDADELA SOLAR</span>
+        <span>DESPLEGAR EN EL SISTEMA PLANETARIO</span>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
     </div>
@@ -109,13 +109,14 @@
       <div class="telemetry-module">
         <div class="telemetry-header">
           <span class="lvl-pill">NV. <b id="hud-level">1</b><small>/100</small></span>
+          <span id="hud-gear-badge" class="lvl-pill" style="background:rgba(108,229,255,0.16);border-color:rgba(108,229,255,0.45);color:#6ce5ff">+0</span>
           <span id="hud-zone-name" class="zone-title">SANTUARIO SOLAR</span>
         </div>
 
         <!-- Slim HP & Shield Bar -->
         <div class="bar-track hp-track">
           <div id="hud-hp-fill" class="bar-fill hp-fill" style="width: 100%"></div>
-          <span class="bar-micro-text">INTEGRIDAD <b id="hud-hp">100/100</b></span>
+          <span class="bar-micro-text">VIDA <b id="hud-hp">260/260</b></span>
         </div>
 
         <!-- Slim XP Progression Bar -->
@@ -124,9 +125,10 @@
           <span id="hud-xp-text" class="bar-micro-text">XP 0 / 100</span>
         </div>
 
-        <!-- Economy, Altitude & Relics Strip -->
+        <!-- Economy, Jewels, Soulshots & Altitude Strip -->
         <div class="telemetry-subrow">
-          <span class="stat-token gold-token" title="Créditos de Éter">✦ <b id="hud-coins">500</b></span>
+          <span class="stat-token gold-token" title="Créditos de Éter">✦ <b id="hud-coins">600</b></span>
+          <span class="stat-token cyan-token" title="Joyas (Bendición / Alma / Caos)">💎 <b id="hud-jewels">3/1/1</b></span>
           <span id="hud-altitude" class="stat-token cyan-token">ALT 0m</span>
           <span class="stat-token emerald-token" title="Exploradores Conectados">● <b id="hud-online">13</b></span>
         </div>
@@ -147,10 +149,15 @@
         <span class="key-hint">M</span>
       </button>
 
-      <button id="btn-skills" class="svg-nav-btn" title="Códice de Habilidades Nivel 1-100 [K]">
+      <button id="btn-skills" class="svg-nav-btn" title="Atributos RO (STR/AGI/VIT/INT/DEX/LUK) & Códice [K]">
         <svg viewBox="0 0 24 24"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
-        <span id="skill-pt-badge" class="notif-dot">1</span>
+        <span id="skill-pt-badge" class="notif-dot">11</span>
         <span class="key-hint">K</span>
+      </button>
+
+      <button id="btn-forge" class="svg-nav-btn" title="Forja del Caos (+15, Alas, Soulshots y Sociedad) [F]">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+        <span class="key-hint">F</span>
       </button>
 
       <button id="btn-archon" class="svg-nav-btn" title="Oráculo IA Arconte [O]">
@@ -194,7 +201,7 @@
         </div>
       </div>
 
-      <!-- 5-Tier Fleet Dock with Clean Vector Icons & Keybinds -->
+      <!-- 5-Tier Fleet Dock + Soulshot & Potion Quick Toggles -->
       <div class="quick-mounts-dock">
         <button id="btn-mount-horse" class="mount-btn" title="Corcel Imperial (Gratis • Tecla 1)">
           <span class="slot-key">1</span>
@@ -202,7 +209,7 @@
           <span class="slot-label">CORCEL</span>
         </button>
 
-        <button id="btn-mount-car" class="mount-btn" title="Supercar GT (400 ✦ • Tecla 2)">
+        <button id="btn-mount-car" class="mount-btn" title="Supercar GT Roadster (400 ✦ • Tecla 2)">
           <span class="slot-key">2</span>
           <svg viewBox="0 0 24 24"><path d="M5 17h14v-5l-2-4H7L5 12v5z"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg>
           <span class="slot-label">SUPERCAR</span>
@@ -220,10 +227,16 @@
           <span class="slot-label">CAZA</span>
         </button>
 
-        <button id="btn-mount-starship" class="mount-btn accent" title="Nave Interplanetaria (2,500 ✦ • Tecla 5)">
+        <button id="btn-mount-starship" class="mount-btn accent" title="Crucero Interplanetario (2,500 ✦ • Tecla 5)">
           <span class="slot-key">5</span>
           <svg viewBox="0 0 24 24"><path d="M12 2c4 4 5 9 5 14l3 3-4 1-4 2-4-2-4-1 3-3c0-5 1-10 5-14z"/><circle cx="12" cy="11" r="2"/></svg>
           <span class="slot-label">CRUCERO</span>
+        </button>
+
+        <button id="btn-soulshot" class="mount-btn active" title="Cargas de Éter / Soulshots (Multiplica Daño x1.85 • Tecla X)">
+          <span class="slot-key">X</span>
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span id="hud-shots-count" class="slot-label">180⚡</span>
         </button>
       </div>
 
@@ -239,12 +252,12 @@
           <small>BAJAR</small>
         </button>
 
-        <button id="btn-strike" class="wheel-btn strike" title="Pulso de Éter (Q)">
+        <button id="btn-strike" class="wheel-btn strike" title="Atacar Monstruos / Pulso de Éter (Q)">
           <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <small>PULSO</small>
+          <small>ATACAR</small>
         </button>
 
-        <button id="btn-use" class="wheel-btn use" title="Interactuar (E)">
+        <button id="btn-use" class="wheel-btn use" title="Interactuar / Curar (E / R)">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
           <small>USAR</small>
         </button>
@@ -258,47 +271,47 @@
   <div id="starmap-modal" class="drawer-backdrop hidden">
     <div class="drawer-card wide-card">
       <div class="drawer-header">
-        <h3>CARTA ESTELAR // ECONOMÍA DE TRÁNSITO Y HANGAR</h3>
+        <h3>CARTA ESTELAR // ECONOMÍA DE TRÁNSITO, ZONAS DE CAZA Y HANGAR</h3>
         <button id="btn-close-starmap" class="close-x">✕</button>
       </div>
       <p class="drawer-sub">
         Vuela manualmente hacia el espacio exterior con tu <b>Caza o Crucero Interplanetario</b> sin costo de peaje, o utiliza la <b>Red de Teletransporte Cuántico</b> abonando Créditos de Éter (✦):
       </p>
 
-      <div class="section-label">RED DE TRÁNSITO INTERPLANETARIO (PEAJE EN CRÉDITOS ✦)</div>
+      <div class="section-label">MUNDOS DEL SISTEMA & NIVELES DE CAZA DE MONSTRUOS (PEAJE EN CRÉDITOS ✦)</div>
       <div class="attractions-grid">
         <div class="attr-card" data-transit="earth_sanctuary" data-fare="50">
-          <div class="attr-badge">TIERRA</div>
+          <div class="attr-badge">NV. 1-25</div>
           <div class="attr-info">
-            <h4>Santuario Solar de Aethelgard</h4>
-            <p>Plaza Central, Avenidas Cardinales, Pista Imperial GT y Puerto Espacial.</p>
+            <h4>Planeta Tierra • Santuario de Aethelgard</h4>
+            <p>Spots de Centinelas y MVP Coloso de Aethelgard (Nv.25). Pista GT y Forja Central.</p>
           </div>
           <span class="attr-go">50 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="moon_base" data-fare="350">
-          <div class="attr-badge">ÓRBITA</div>
+          <div class="attr-badge">NV. 30-50</div>
           <div class="attr-info">
             <h4>La Luna (Selene) • Base Tranquilidad</h4>
-            <p>Baja gravedad (Alt: 260m), Cúpula Lunar y cosecha de Helio-3 (+180 ✦ / +120 XP).</p>
+            <p>Altitud 260m, Espectros Lunares y Raid Boss Arconte de Selene (Nv.48). Botín de Joyas.</p>
           </div>
           <span class="attr-go">350 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="mars_colony" data-fare="600">
-          <div class="attr-badge">MARTE</div>
+          <div class="attr-badge">NV. 55-75</div>
           <div class="attr-info">
             <h4>Planeta Marte • Colonia Ares Prime</h4>
-            <p>Altitud 340m, Reactor Iónico Principal y Cristales Kyber (+320 ✦ / +220 XP).</p>
+            <p>Altitud 340m, Gólems Kyber y Raid Boss Ignis de Ares Prime (Nv.75). Alta tasa de Joya de Alma.</p>
           </div>
           <span class="attr-go">600 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="aurelia_ring" data-fare="950">
-          <div class="attr-badge">PROFUNDO</div>
+          <div class="attr-badge">NV. 80-100</div>
           <div class="attr-info">
             <h4>Planeta Anillado Aurelia • Ciudadela</h4>
-            <p>Altitud 440m, Anillos Dorados y Matriz de Éter Puro (+500 ✦ / +380 XP).</p>
+            <p>Altitud 440m, Serafines del Vacío y Boss Emperador de Aurelia (Nv.99). Plumas de Fénix.</p>
           </div>
           <span class="attr-go">950 ✦ ⟶</span>
         </div>
@@ -315,20 +328,20 @@
         <div class="attr-card" data-action="change_character">
           <div class="attr-badge">LINAJE</div>
           <div class="attr-info">
-            <h4>Cámara de Linajes (Cambiar Explorador)</h4>
-            <p>Regresa al pedestal de obsidiana para cambiar de armadura o importar un .GLB.</p>
+            <h4>Cámara de Linajes (Cambiar Clase/Armadura)</h4>
+            <p>Regresa al pedestal de obsidiana para cambiar de clase o importar un .GLB.</p>
           </div>
           <span class="attr-go">Abrir ⟶</span>
         </div>
       </div>
 
-      <div class="section-label" style="margin-top:14px;">HANGAR DE FLOTA Y MONTURAS (ADQUISICIÓN PERMANENTE)</div>
+      <div class="section-label" style="margin-top:14px;">HANGAR DE FLOTA Y MONTURAS (PILOTAJE VISIBLE EN CABINA)</div>
       <div class="attractions-grid" id="hangar-grid">
         <div class="attr-card" data-buy-mount="horse">
           <div class="attr-badge">TIERRA</div>
           <div class="attr-info">
-            <h4>Corcel Imperial</h4>
-            <p>Montura de caballería ágil para avenidas y llanuras.</p>
+            <h4>Corcel Imperial (Silla y Estribos)</h4>
+            <p>Tu personaje cabalga sentado con postura natural de jinete sobre el lomo.</p>
           </div>
           <span class="attr-go" id="price-horse">Adquirido</span>
         </div>
@@ -336,8 +349,8 @@
         <div class="attr-card" data-buy-mount="supercar">
           <div class="attr-badge">PISTA</div>
           <div class="attr-info">
-            <h4>Supercar GT (Cabina Cerrada)</h4>
-            <p>Deportivo de competición con suspensión activa e inclinación en curva.</p>
+            <h4>Supercar GT Roadster</h4>
+            <p>Tu piloto va sentado al volante dentro del habitáculo deportivo.</p>
           </div>
           <span class="attr-go" id="price-supercar">400 ✦</span>
         </div>
@@ -346,7 +359,7 @@
           <div class="attr-badge">CIELO</div>
           <div class="attr-info">
             <h4>Ave Mítica Solar</h4>
-            <p>Vuelo orgánico por las cumbres y templos de la Tierra.</p>
+            <p>Jinete montado sobre arnés dorsal dorado para vuelo atmosférico.</p>
           </div>
           <span class="attr-go" id="price-mythic_bird">650 ✦</span>
         </div>
@@ -355,7 +368,7 @@
           <div class="attr-badge">ATMOS</div>
           <div class="attr-info">
             <h4>Caza Interceptor Supersónico</h4>
-            <p>Cabina blindada de cristal oscuro, alabeo aerodinámico y postquemador.</p>
+            <p>Fuselaje delta con piloto sentado bajo cúpula transparente y doble postquemador.</p>
           </div>
           <span class="attr-go" id="price-jet">1,200 ✦</span>
         </div>
@@ -363,8 +376,8 @@
         <div class="attr-card" data-buy-mount="starship">
           <div class="attr-badge">ORBITAL</div>
           <div class="attr-info">
-            <h4>Crucero Interplanetario Warp</h4>
-            <p>Anillo gravitacional dorado para cruzar hacia la Luna, Marte y Aurelia.</p>
+            <h4>Crucero Estelar Valkyrie-X</h4>
+            <p>Puente de mando panorámico con comandante sentado, anillo Warp y reactor iónico.</p>
           </div>
           <span class="attr-go" id="price-starship">2,500 ✦</span>
         </div>
@@ -373,19 +386,77 @@
   </div>
 
   <!-- =========================================================================
-       LEVEL 1-100 & SKILL TREE MODAL
+       RAGNAROK ONLINE 6-STAT BUILDER + LEVEL 1-100 CODEX MODAL [K]
        ========================================================================= -->
   <div id="skills-modal" class="drawer-backdrop hidden">
     <div class="drawer-card wide-card">
       <div class="drawer-header">
-        <h3>CÓDICE DE PROGRESIÓN (NIVEL 1 AL 100) & HABILIDADES</h3>
+        <h3>ATRIBUTOS DE PERSONAJE (ESTILO RAGNAROK) & CÓDICE NV. 1–100</h3>
         <button id="btn-close-skills" class="close-x">✕</button>
       </div>
       <div class="skills-summary-banner">
-        <div>RANGO DE EXPLORADOR: <b id="sk-lvl">1</b> / 100 (Tope Máximo)</div>
-        <div>PUNTOS DE CÓDICE DISPONIBLES: <b id="sk-pts" class="gold-txt">1</b></div>
+        <div>NIVEL: <b id="sk-lvl">1</b>/100 • ATK: <b id="st-atk">45</b> • MATK: <b id="st-matk">45</b> • CRIT: <b id="st-crit">12%</b></div>
+        <div>PUNTOS DE ATRIBUTO: <b id="st-pts" class="gold-txt">10</b> • CÓDICE: <b id="sk-pts" class="gold-txt">1</b></div>
       </div>
 
+      <div class="section-label">DISTRIBUCIÓN DE ATRIBUTOS CLÁSICOS (+5 PUNTOS POR CADA NIVEL SUBIDO)</div>
+      <div class="attractions-grid">
+        <div class="attr-card" data-stat="str">
+          <div class="attr-badge">STR <span id="val-str">5</span></div>
+          <div class="attr-info">
+            <h4>Fuerza Física (STR)</h4>
+            <p>Aumenta el Daño Físico (ATK +4 por punto) para guerreros y paladines de vanguardia.</p>
+          </div>
+          <span class="attr-go">+ Subir STR</span>
+        </div>
+
+        <div class="attr-card" data-stat="agi">
+          <div class="attr-badge">AGI <span id="val-agi">5</span></div>
+          <div class="attr-info">
+            <h4>Agilidad & ASPD (AGI)</h4>
+            <p>Reduce el tiempo de recarga de ataque y aumenta la velocidad de acción.</p>
+          </div>
+          <span class="attr-go">+ Subir AGI</span>
+        </div>
+
+        <div class="attr-card" data-stat="vit">
+          <div class="attr-badge">VIT <span id="val-vit">5</span></div>
+          <div class="attr-info">
+            <h4>Vitalidad & Escudo (VIT)</h4>
+            <p>Incrementa tu Vida Máxima (+28 HP por punto) y reduce el daño recibido de Jefes.</p>
+          </div>
+          <span class="attr-go">+ Subir VIT</span>
+        </div>
+
+        <div class="attr-card" data-stat="int">
+          <div class="attr-badge">INT <span id="val-int">5</span></div>
+          <div class="attr-info">
+            <h4>Inteligencia Astral (INT)</h4>
+            <p>Incrementa el Poder Mágico de Éter (MATK +5 por punto) para Arcontes y Valkirias.</p>
+          </div>
+          <span class="attr-go">+ Subir INT</span>
+        </div>
+
+        <div class="attr-card" data-stat="dex">
+          <div class="attr-badge">DEX <span id="val-dex">5</span></div>
+          <div class="attr-info">
+            <h4>Destreza & Precisión (DEX)</h4>
+            <p>Estabiliza el daño mínimo (+2 ATK / +2 MATK) y mejora el pilotaje orbital.</p>
+          </div>
+          <span class="attr-go">+ Subir DEX</span>
+        </div>
+
+        <div class="attr-card" data-stat="luk">
+          <div class="attr-badge">LUK <span id="val-luk">5</span></div>
+          <div class="attr-info">
+            <h4>Suerte & Crítico (LUK)</h4>
+            <p>Aumenta la tasa de Golpe Crítico, el éxito en la Forja (+15) y el drop de Joyas.</p>
+          </div>
+          <span class="attr-go">+ Subir LUK</span>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:14px;">MAESTRÍAS PASIVAS DEL CÓDICE (1 PUNTO POR NIVEL)</div>
       <div class="attractions-grid">
         <div class="attr-card" data-upgrade="velocity">
           <div class="attr-badge">VEL</div>
@@ -409,7 +480,7 @@
           <div class="attr-badge">ESC</div>
           <div class="attr-info">
             <h4>Coraza Inmortal (Nv. <span id="sk-val-vitality">0</span>/25)</h4>
-            <p>Incrementa tu Integridad Máxima en +25 HP por rango.</p>
+            <p>Incrementa tu Integridad Máxima en +30 HP adicionales por rango.</p>
           </div>
           <span class="attr-go">+ Mejorar</span>
         </div>
@@ -421,6 +492,101 @@
             <p>Reduce hasta un 50% el costo de peajes en la Red de Tránsito Interplanetario.</p>
           </div>
           <span class="attr-go">+ Mejorar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MU ONLINE CHAOS FORGE (+15 GLOW & WINGS) + LINEAGE II SOCIETY MODAL [F]
+       ========================================================================= -->
+  <div id="forge-modal" class="drawer-backdrop hidden">
+    <div class="drawer-card wide-card">
+      <div class="drawer-header">
+        <h3>FORJA DEL CAOS (+0 A +15 & ALAS) • ALIANZA DE LA SOCIEDAD</h3>
+        <button id="btn-close-forge" class="close-x">✕</button>
+      </div>
+
+      <div class="skills-summary-banner">
+        <div>EQUIPO ACTUAL: <b id="fg-gear" class="gold-txt">+0</b> • ALAS: <b id="fg-wings" class="gold-txt">Ninguna</b></div>
+        <div>💎 BENDICIÓN: <b id="inv-bless">3</b> • ALMA: <b id="inv-soul">1</b> • CAOS: <b id="inv-chaos">1</b> • PLUMAS: <b id="inv-feather">0</b></div>
+      </div>
+
+      <div class="section-label">1. MÁQUINA DE FORJA Y EVOLUCIÓN DE ALAS (ESTILO MU ONLINE)</div>
+      <div class="attractions-grid">
+        <div class="attr-card" data-forge="bless">
+          <div class="attr-badge">+1 A +6</div>
+          <div class="attr-info">
+            <h4>Imbuir Joya de Bendición (100% Seguro)</h4>
+            <p>Mejora tu Armadura y Arma de +0 hasta +6 sin riesgo de fallo. Otorga brillo esmeralda.</p>
+          </div>
+          <span class="attr-go">Usar 1 Bendición</span>
+        </div>
+
+        <div class="attr-card" data-forge="soul">
+          <div class="attr-badge">+7 A +9</div>
+          <div class="attr-info">
+            <h4>Imbuir Joya de Alma (Aura Zafiro)</h4>
+            <p>Eleva tu equipo de +6 a +9 (tu atributo LUK mejora la probabilidad de éxito).</p>
+          </div>
+          <span class="attr-go">Usar 1 Alma</span>
+        </div>
+
+        <div class="attr-card" data-forge="chaos_gear">
+          <div class="attr-badge">+10 A +15</div>
+          <div class="attr-info">
+            <h4>Fusión Suprema del Caos (+10 a +15 Radiante)</h4>
+            <p>Combina 1 Caos + 1 Bendición + 1 Alma para alcanzar el mítico halo solar +15.</p>
+          </div>
+          <span class="attr-go">Fusionar +15</span>
+        </div>
+
+        <div class="attr-card" data-forge="wings">
+          <div class="attr-badge">ALAS 3D</div>
+          <div class="attr-info">
+            <h4>Sintetizar / Evolucionar Alas (Nv.1 ➔ Nv.3)</h4>
+            <p>Crea Alas Solares, de Arcángel o de Serafín Imperial con 1 Joya del Caos + 1 Pluma (o 900 ✦).</p>
+          </div>
+          <span class="attr-go">Forjar Alas</span>
+        </div>
+      </div>
+
+      <div class="section-label" style="margin-top:14px;">2. SUMINISTROS TÁCTICOS (SOULSHOTS LINEAGE II) & CONTRIBUCIÓN COLECTIVA</div>
+      <div class="attractions-grid">
+        <div class="attr-card" data-supply="soulshots">
+          <div class="attr-badge">SHOTS</div>
+          <div class="attr-info">
+            <h4>Recargar +200 Cargas de Éter (Soulshots)</h4>
+            <p>Tus ataques consumen 1 carga para multiplicar tu daño x1.85 con destello de luz.</p>
+          </div>
+          <span class="attr-go">120 ✦</span>
+        </div>
+
+        <div class="attr-card" data-supply="potions">
+          <div class="attr-badge">VIDA</div>
+          <div class="attr-info">
+            <h4>Adquirir +5 Cargas de Reparación Vital (Tecla R)</h4>
+            <p>Restaura instantáneamente el 60% de tu Vida durante cacerías de Raid Bosses.</p>
+          </div>
+          <span class="attr-go">90 ✦</span>
+        </div>
+
+        <div class="attr-card" data-supply="bless">
+          <div class="attr-badge">JOYA</div>
+          <div class="attr-info">
+            <h4>Mercader del Gremio: Comprar Joya de Bendición</h4>
+            <p>Adquiere una Joya de Bendición directamente con Créditos de Éter.</p>
+          </div>
+          <span class="attr-go">450 ✦</span>
+        </div>
+
+        <div class="attr-card" id="btn-donate-society">
+          <div class="attr-badge">ALIANZA</div>
+          <div class="attr-info">
+            <h4>Santuario Colectivo (Nivel <span id="soc-lvl">3</span> • <span id="soc-prog">6400/10000</span>)</h4>
+            <p id="soc-buff-txt">Aporta 300 ✦ al fondo común de todos los jugadores para aumentar el bono de XP y Drop global.</p>
+          </div>
+          <span class="attr-go">Donar 300 ✦</span>
         </div>
       </div>
     </div>
