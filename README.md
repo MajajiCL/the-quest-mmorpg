@@ -1,6 +1,17 @@
 # 🪐 THE QUEST — Open-Source Interplanetary & Maritime MMORPG (Level 1–100)
 
-**THE QUEST** es un MMORPG interplanetario y marítimo fotorrealista multiplataforma (**PC + Móvil Táctil**) construido con **Three.js (PBR / HDRI / Draco / Post-Processing / Water Shader)** y un servidor autoritativo espacial (**WebSockets + 3D Spatial Hash Grid AoI**) capaz de sincronizar **500+ jugadores concurrentes**.
+[![Play Live](https://img.shields.io/badge/PLAY_NOW-GitHub_Pages-gold?style=for-the-badge&logo=google-chrome&logoColor=white)](https://majajicl.github.io/the-quest-mmorpg/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Multiplayer: WebSocket + Spatial AoI](https://img.shields.io/badge/Engine-Three.js_WebGL-teal?style=for-the-badge)](https://majajicl.github.io/the-quest-mmorpg/)
+
+🎮 **JUEGA EN VIVO DIRECTO EN TU NAVEGADOR (PC O MÓVIL TÁCTIL, SIN INSTALAR NADA):**  
+👉 **[https://majajicl.github.io/the-quest-mmorpg/](https://majajicl.github.io/the-quest-mmorpg/)**
+
+---
+
+**THE QUEST** es un MMORPG interplanetario y marítimo fotorrealista multiplataforma (**PC + Móvil Táctil**) construido con **Three.js (PBR / HDRI / Draco / Post-Processing / Water Shader)** y un motor dual híbrido:
+1. **Modo Soberano Autónomo (Web):** Juega al instante en GitHub Pages con persistencia local en tu navegador (`localStorage`), monstruos de mundo abierto, jefes de incursión (Raid Bosses), árbol de 6 estadísticas estilo *Ragnarok*, Forja Primordial `+0` a `+15` y Alas Evolucionadas estilo *MU*, navegación en Galeón naval y saltos cuánticos entre mundos sin requerir servidor externo.
+2. **Modo Multijugador Autoritativo:** Servidor espacial dedicado con WebSockets y Spatial Hash Grid AoI capaz de sincronizar **500+ jugadores concurrentes**.
 
 ---
 
