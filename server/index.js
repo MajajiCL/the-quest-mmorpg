@@ -104,9 +104,11 @@ for (const e of seedExplorers) {
 // Spawn Planetary & Lunar Resource Nodes (Gold on Earth, Helium-3 on Moon, Kyber on Mars, Aether on Aurelia)
 let nextNodeId = 1;
 function spawnPlanetaryNodes() {
-  // Earth Nodes (y around 0)
+  // Earth Nodes (y around 0, outside the central altar radius r=18m)
   for (let i = 0; i < 45; i++) {
-    createNode((Math.random() - 0.5) * 220, 1.1, (Math.random() - 0.5) * 220, 60, 45, 'earth');
+    const angle = Math.random() * Math.PI * 2;
+    const rad = 18 + Math.random() * 92;
+    createNode(Math.cos(angle) * rad, 1.1, Math.sin(angle) * rad, 60, 45, 'earth');
   }
   // Moon Nodes (Center: 0, 260, -680, Radius: 65)
   for (let i = 0; i < 20; i++) {
@@ -358,15 +360,17 @@ function spawnAutonomousExplorers(count = 12) {
   for (let i = 0; i < count; i++) {
     const id = `npc_exp_${i + 1}`;
     const angle = (i / count) * Math.PI * 2;
-    const radius = 14 + (i % 4) * 8;
+    const isRacer = i === 5 || i === 10;
+    const isFlier = i === 8;
+    const radius = isRacer ? 44 : (20 + (i % 4) * 5.5);
     const bot = {
       id,
       name: BOT_NAMES[i % BOT_NAMES.length],
       avatar: VALID_AVATARS[i % VALID_AVATARS.length],
       level: 5 + i * 7,
-      mount: i === 2 ? 'horse' : (i === 5 ? 'supercar' : (i === 8 ? 'mythic_bird' : 'none')),
+      mount: i === 2 ? 'horse' : (isRacer ? 'supercar' : (isFlier ? 'mythic_bird' : 'none')),
       x: Math.cos(angle) * radius,
-      y: i === 8 ? 14 : 0,
+      y: isFlier ? 15 : 0,
       z: Math.sin(angle) * radius,
       ry: angle + Math.PI,
       anim: 'Walk',
@@ -377,7 +381,7 @@ function spawnAutonomousExplorers(count = 12) {
       isBot: true,
       isStressBot: false,
       phase: Math.random() * Math.PI * 2,
-      speed: i === 5 ? 8.5 : (i === 2 ? 6.0 : 3.4),
+      speed: isRacer ? 11.5 : (i === 2 ? 6.0 : 3.4),
       centerR: radius
     };
     players.set(id, bot);

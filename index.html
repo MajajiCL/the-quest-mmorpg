@@ -3,155 +3,190 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>THE QUEST // MMORPG Interplanetario Fotorrealista (Nivel 1-100)</title>
+  <title>THE QUEST // Interplanetary Action MMORPG (Nivel 1-100)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css" />
 </head>
 <body>
   <!-- 3D Photorealistic Planetary & Orbital WebGL Canvas -->
   <div id="canvas-container"></div>
 
-  <!-- LUXURY TOP-CENTER NOTIFICATION TOAST -->
+  <!-- AAA TOP-CENTER CHRONICLE NOTIFICATION TOAST -->
   <div id="world-toast" class="world-toast hidden">
     <div class="toast-ornament">❖</div>
     <div class="toast-body">
-      <div id="world-toast-title">CRÓNICA DEL SISTEMA SOLAR</div>
-      <div id="world-toast-desc">Un Explorador ha alcanzado un nuevo hito.</div>
+      <div id="world-toast-title">CRÓNICA DEL SISTEMA</div>
+      <div id="world-toast-desc">Hito registrado en la red estelar.</div>
     </div>
   </div>
 
   <!-- =========================================================================
-       LUXURY LIVE 3D CHARACTER SHOWCASE & ENTRY SCREEN
+       AAA LIVE 3D CHARACTER SHOWCASE & LINEAGE SELECTOR
        ========================================================================= -->
   <div id="entry-screen" class="showcase-overlay">
     <div class="showcase-top">
-      <div class="luxury-crest">✦ THE QUEST • MMORPG INTERPLANETARIO • NIVEL 1 AL 100 ✦</div>
-      <h1 class="showcase-title">ELIGE TU LINAJE</h1>
+      <div class="luxury-crest">AETHELGARD SOLAR SANCTUARY • SISTEMA INTERPLANETARIO • NIVEL 1–100</div>
+      <h1 class="showcase-title">THE QUEST</h1>
     </div>
 
     <div class="showcase-bottom-dock">
       <div class="character-info-bar">
         <div class="char-meta">
-          <span id="char-role-tag" class="char-role-tag">FUERZAS ESPECIALES • RECONOCIMIENTO PLANETARIO</span>
+          <span id="char-role-tag" class="char-role-tag">INFANTERÍA DE RECONOCIMIENTO • ARMADURA PESADA</span>
           <h2 id="char-display-name" class="char-display-name">COMANDANTE VANGUARD</h2>
         </div>
         <div class="name-input-wrap">
-          <input type="text" id="explorer-name-input" maxlength="18" placeholder="Tu nombre..." value="Vanguard_01" />
+          <label class="input-micro-label" for="explorer-name-input">IDENTIFICADOR</label>
+          <input type="text" id="explorer-name-input" maxlength="18" placeholder="Nombre..." value="Vanguard_01" />
         </div>
       </div>
 
       <div class="class-carousel" id="avatar-selector">
-        <button type="button" class="class-card active" data-avatar="Vanguard" data-title="COMANDANTE VANGUARD" data-role="FUERZAS ESPECIALES • TÁCTICO">
+        <button type="button" class="class-card active" data-avatar="Vanguard" data-title="COMANDANTE VANGUARD" data-role="INFANTERÍA TÁCTICA • VISOR ÁMBAR">
           <span class="class-badge">01</span>
           <span class="class-name">Vanguard</span>
-          <span class="class-sub">Táctico</span>
+          <span class="class-sub">Comandante</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="Elena" data-title="ELENA VERNE" data-role="EXPLORADORA DE RELIQUIAS • AGILIDAD">
+        <button type="button" class="class-card" data-avatar="Elena" data-title="VALQUIRIA ELENA" data-role="EXOTRAJE DE MARFIL Y ORO • AGILIDAD">
           <span class="class-badge">02</span>
           <span class="class-name">Elena</span>
-          <span class="class-sub">Exploradora</span>
+          <span class="class-sub">Valquiria</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="ShadowOps" data-title="ESPECTRO DE OBSIDIANA" data-role="INFILTRACIÓN ORBITAL • SIGILO">
+        <button type="button" class="class-card" data-avatar="ShadowOps" data-title="ESPECTRO DE OBSIDIANA" data-role="INFILTRACIÓN ORBITAL • NÚCLEO CARMESÍ">
           <span class="class-badge">03</span>
           <span class="class-name">Espectro</span>
           <span class="class-sub">Obsidiana</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="Kael" data-title="KAEL NOMAD" data-role="PILOTO INTERPLANETARIO • VELOCIDAD">
+        <button type="button" class="class-card" data-avatar="Kael" data-title="ARCONTE KAEL" data-role="PILOTO INTERPLANETARIO • CORONA ASTRAL">
           <span class="class-badge">04</span>
           <span class="class-name">Kael</span>
-          <span class="class-sub">Piloto</span>
+          <span class="class-sub">Piloto Astral</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="DesertRanger" data-title="GUARDIÁN DEL SOL" data-role="ARTILLERO IMPERIAL • RESISTENCIA">
+        <button type="button" class="class-card" data-avatar="DesertRanger" data-title="CENTURIÓN SOLAR" data-role="GUARDIA PRETORIANA • ACERO DORADO">
           <span class="class-badge">05</span>
-          <span class="class-name">Guardián</span>
-          <span class="class-sub">Dorado</span>
+          <span class="class-name">Centurión</span>
+          <span class="class-sub">Pretoriano</span>
         </button>
 
-        <button type="button" class="class-card" data-avatar="Aegis" data-title="CENTINELA AEGIS" data-role="ARMADURA SINTÉTICA • ESPACIO PROFUNDO">
+        <button type="button" class="class-card" data-avatar="Aegis" data-title="CENTINELA AEGIS" data-role=" CHASIS DE COBALTO • ESPACIO PROFUNDO">
           <span class="class-badge">06</span>
           <span class="class-name">Aegis</span>
-          <span class="class-sub">Sintético</span>
+          <span class="class-sub">Centinela</span>
         </button>
 
         <label class="class-card upload-card" for="custom-glb-input">
-          <span class="class-badge">📂</span>
+          <span class="class-badge">GLB</span>
           <span class="class-name">Importar</span>
-          <span class="class-sub">Tu .GLB</span>
+          <span class="class-sub">Modelo 3D</span>
           <input type="file" id="custom-glb-input" accept=".glb,.gltf" hidden />
         </label>
       </div>
 
       <button id="btn-start-world" class="btn-luxury-enter">
-        <span>INICIAR EXPEDICIÓN PLANETARIA (NIVEL 1)</span>
-        <span class="btn-arrow">⟶</span>
+        <span>DESPLEGAR EN LA CIUDADELA SOLAR</span>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </button>
     </div>
   </div>
 
   <!-- =========================================================================
-       PREMIUM INTERPLANETARY HUD (LEVEL 1-100, ALTITUDE, ECONOMY, MOUNTS)
+       AAA LIQUID-GLASS PERIPHERAL HUD (RADAR + TELEMETRY + SVG VECTOR DOCKS)
        ========================================================================= -->
   <div id="hud" class="hidden">
-    <!-- Top-Left Luxury Status & Level 1-100 Progress Bar -->
+    <!-- TOP-LEFT: LIVE 2D RADAR MINIMAP + COMMANDER TELEMETRY -->
     <div class="hud-top-left">
-      <div class="status-pill">
-        <span class="lvl-badge">NV. <b id="hud-level">1</b><small>/100</small></span>
-        <span class="sep">|</span>
-        <span id="hud-zone-name" class="zone-label">PLANETA TIERRA</span>
-        <span class="sep">|</span>
-        <span class="hp-dot">♥ <b id="hud-hp">100</b></span>
-        <span class="sep">|</span>
-        <span class="shard-dot">✦ <b id="hud-coins">500</b></span>
-        <span class="sep">|</span>
-        <span class="online-dot">● <b id="hud-online">13</b></span>
+      <div class="radar-module">
+        <canvas id="radar-canvas" width="124" height="124"></canvas>
+        <div class="radar-north-tag">N</div>
       </div>
 
-      <!-- XP Progress Bar + Altitude / Orbital Telemetry -->
-      <div class="telemetry-row">
-        <div class="xp-bar-wrap" title="Progreso de Experiencia (Tope Nivel 100)">
-          <div id="hud-xp-fill" class="xp-bar-fill" style="width: 10%"></div>
-          <span id="hud-xp-text" class="xp-bar-label">XP 0 / 100</span>
+      <div class="telemetry-module">
+        <div class="telemetry-header">
+          <span class="lvl-pill">NV. <b id="hud-level">1</b><small>/100</small></span>
+          <span id="hud-zone-name" class="zone-title">SANTUARIO SOLAR</span>
         </div>
-        <div id="hud-altitude" class="alt-badge">ALT: 0m (ATMOSFÉRICO)</div>
-      </div>
 
-      <!-- Relics & Active Vehicle Chip -->
-      <div class="relics-bar">
-        <div id="relic-0" class="relic-chip" title="Reliquia del Horizonte">❖ Horizonte</div>
-        <div id="relic-1" class="relic-chip" title="Reliquia de la Mente">❖ Mente</div>
-        <div id="relic-2" class="relic-chip" title="Reliquia del Valor">❖ Valor</div>
-        <div id="mount-indicator" class="relic-chip mount-chip">🚶 A Pie</div>
+        <!-- Slim HP & Shield Bar -->
+        <div class="bar-track hp-track">
+          <div id="hud-hp-fill" class="bar-fill hp-fill" style="width: 100%"></div>
+          <span class="bar-micro-text">INTEGRIDAD <b id="hud-hp">100/100</b></span>
+        </div>
+
+        <!-- Slim XP Progression Bar -->
+        <div class="bar-track xp-track">
+          <div id="hud-xp-fill" class="bar-fill xp-fill" style="width: 12%"></div>
+          <span id="hud-xp-text" class="bar-micro-text">XP 0 / 100</span>
+        </div>
+
+        <!-- Economy, Altitude & Relics Strip -->
+        <div class="telemetry-subrow">
+          <span class="stat-token gold-token" title="Créditos de Éter">✦ <b id="hud-coins">500</b></span>
+          <span id="hud-altitude" class="stat-token cyan-token">ALT 0m</span>
+          <span class="stat-token emerald-token" title="Exploradores Conectados">● <b id="hud-online">13</b></span>
+        </div>
+
+        <div class="relics-strip">
+          <div id="relic-0" class="relic-node" title="Reliquia del Horizonte (Oeste)">❖ HORIZONTE</div>
+          <div id="relic-1" class="relic-node" title="Reliquia de la Mente (Norte)">❖ MENTE</div>
+          <div id="relic-2" class="relic-node" title="Reliquia del Valor (Este)">❖ VALOR</div>
+          <div id="mount-indicator" class="relic-node active-mode">INFANTERÍA</div>
+        </div>
       </div>
     </div>
 
-    <!-- Top-Right Floating Luxury Action Icons -->
+    <!-- TOP-RIGHT: CLEAN ARCHITECTURAL SVG UTILITY BAR -->
     <div class="hud-top-right">
-      <button id="btn-starmap" class="icon-btn gold-ring" title="Carta Estelar, Teletransporte Pagado y Hangar">🪐</button>
-      <button id="btn-skills" class="icon-btn" title="Árbol de Habilidades y Nivel (1-100)">🧬<span id="skill-pt-badge" class="notif-dot">1</span></button>
-      <button id="btn-time" class="icon-btn" title="Cambiar Clima / Hora del Sol">☀️</button>
-      <button id="btn-archon" class="icon-btn" title="Oráculo IA Arconte">🔮</button>
-      <button id="btn-ranking" class="icon-btn" title="Clasificación y Chat Mundial">🏆</button>
-      <button id="btn-crowd" class="icon-btn" title="Simular 500 Exploradores">⚡</button>
-      <button id="btn-photo" class="icon-btn" title="Modo Foto Cinematográfico">📸</button>
+      <button id="btn-starmap" class="svg-nav-btn highlight" title="Carta Estelar, Peajes y Hangar [M]">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><ellipse cx="12" cy="12" rx="11" ry="4" transform="rotate(-25 12 12)"/></svg>
+        <span class="key-hint">M</span>
+      </button>
+
+      <button id="btn-skills" class="svg-nav-btn" title="Códice de Habilidades Nivel 1-100 [K]">
+        <svg viewBox="0 0 24 24"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5"/><line x1="12" y1="22" x2="12" y2="15.5"/><polyline points="22 8.5 12 15.5 2 8.5"/></svg>
+        <span id="skill-pt-badge" class="notif-dot">1</span>
+        <span class="key-hint">K</span>
+      </button>
+
+      <button id="btn-archon" class="svg-nav-btn" title="Oráculo IA Arconte [O]">
+        <svg viewBox="0 0 24 24"><path d="M12 2L15 9l7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
+        <span class="key-hint">O</span>
+      </button>
+
+      <button id="btn-time" class="svg-nav-btn" title="Ciclo Solar y Atmósfera">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
+
+      <button id="btn-ranking" class="svg-nav-btn" title="Clasificación y Canal Comms">
+        <svg viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M4 6h3v3a3 3 0 0 1-3-3zM20 6h-3v3a3 3 0 0 0 3-3z"/></svg>
+      </button>
+
+      <button id="btn-crowd" class="svg-nav-btn" title="Simulación de Carga 500 Exploradores">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </button>
+
+      <button id="btn-photo" class="svg-nav-btn" title="Captura de Telemetría">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
     </div>
 
     <!-- Active Speed Trial Timer Banner -->
     <div id="race-hud" class="race-hud hidden">
-      🏁 CIRCUITO IMPERIAL: <span id="race-progress">0 / 8</span> ANILLOS • TIEMPO: <span id="race-timer">0.0s</span>
+      CIRCUITO IMPERIAL GT // ANILLOS: <span id="race-progress">0 / 8</span> • CRONO: <span id="race-timer">0.0s</span>
     </div>
 
-    <!-- Contextual Floating Prompt -->
+    <!-- Diegetic Contextual Prompt -->
     <button id="context-action-btn" class="context-prompt hidden">
-      ✨ Presiona [E] o toca aquí para interactuar
+      <span class="prompt-key">E</span>
+      <span id="context-action-text">Interactuar</span>
     </button>
 
-    <!-- Bottom Controls: Translucent Glass Joystick + 5-Vehicle Fleet Dock + Flight/Combat Wheel -->
+    <!-- BOTTOM PERIPHERAL CONTROLS: JOYSTICK + 5-TIER FLEET DOCK + TACTICAL WHEEL -->
     <div class="bottom-controls">
       <div id="joystick-zone" class="joystick-wrapper">
         <div id="joystick-base" class="joystick-ring">
@@ -159,137 +194,177 @@
         </div>
       </div>
 
-      <!-- 5-Tier Transportation Dock (Foot, Horse, Supercar, Mythic Bird, Jet, Starship) -->
+      <!-- 5-Tier Fleet Dock with Clean Vector Icons & Keybinds -->
       <div class="quick-mounts-dock">
-        <button id="btn-mount-horse" class="mount-btn" title="Corcel Imperial (Gratis • Tecla 1)">🐎<span>Corcel</span></button>
-        <button id="btn-mount-car" class="mount-btn" title="Supercar GT (400 ✦ • Tecla 2)">🏎️<span>Auto</span></button>
-        <button id="btn-mount-bird" class="mount-btn" title="Ave Mítica Fénix (650 ✦ • Vuelo Atmosférico • Tecla 3)">🦅<span>Ave Mítica</span></button>
-        <button id="btn-mount-jet" class="mount-btn" title="Avión Caza Supersónico (1,200 ✦ • Tecla 4)">✈️<span>Avión</span></button>
-        <button id="btn-mount-starship" class="mount-btn accent" title="Nave Espacial Interplanetaria (2,500 ✦ • Viaje a la Luna y Marte • Tecla 5)">🚀<span>Nave</span></button>
+        <button id="btn-mount-horse" class="mount-btn" title="Corcel Imperial (Gratis • Tecla 1)">
+          <span class="slot-key">1</span>
+          <svg viewBox="0 0 24 24"><path d="M19 7l-3-4-4 2-2 4-5 2-2 5h4l2-3 4 1 2 5h3l1-8 2-2z"/></svg>
+          <span class="slot-label">CORCEL</span>
+        </button>
+
+        <button id="btn-mount-car" class="mount-btn" title="Supercar GT (400 ✦ • Tecla 2)">
+          <span class="slot-key">2</span>
+          <svg viewBox="0 0 24 24"><path d="M5 17h14v-5l-2-4H7L5 12v5z"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg>
+          <span class="slot-label">SUPERCAR</span>
+        </button>
+
+        <button id="btn-mount-bird" class="mount-btn" title="Ave Mítica Solar (650 ✦ • Tecla 3)">
+          <span class="slot-key">3</span>
+          <svg viewBox="0 0 24 24"><path d="M2 12c4-5 9-6 10-2 1-4 6-3 10 2-4 1-8 3-10 6-2-3-6-5-10-6z"/></svg>
+          <span class="slot-label">AVE SOLAR</span>
+        </button>
+
+        <button id="btn-mount-jet" class="mount-btn" title="Caza Supersónico (1,200 ✦ • Tecla 4)">
+          <span class="slot-key">4</span>
+          <svg viewBox="0 0 24 24"><path d="M12 2L8 10 2 14l6 2 4 6 4-6 6-2-6-4-4-8z"/></svg>
+          <span class="slot-label">CAZA</span>
+        </button>
+
+        <button id="btn-mount-starship" class="mount-btn accent" title="Nave Interplanetaria (2,500 ✦ • Tecla 5)">
+          <span class="slot-key">5</span>
+          <svg viewBox="0 0 24 24"><path d="M12 2c4 4 5 9 5 14l3 3-4 1-4 2-4-2-4-1 3-3c0-5 1-10 5-14z"/><circle cx="12" cy="11" r="2"/></svg>
+          <span class="slot-label">CRUCERO</span>
+        </button>
       </div>
 
+      <!-- Tactical Combat & Flight Altitude Wheel -->
       <div class="combat-wheel">
-        <button id="btn-jump" class="wheel-btn" title="Saltar / Ascender al Espacio (Espacio)">⬆️</button>
-        <button id="btn-descend" class="wheel-btn" title="Descender / Aterrizar (C / Shift)">⬇️</button>
-        <button id="btn-strike" class="wheel-btn strike" title="Pulso de Éter / Minería (Q)">⚡</button>
-        <button id="btn-use" class="wheel-btn use" title="Interactuar (E)">🖐️</button>
+        <button id="btn-jump" class="wheel-btn" title="Saltar / Ascender Altitud (Espacio)">
+          <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <small>SUBIR</small>
+        </button>
+
+        <button id="btn-descend" class="wheel-btn" title="Descender / Aterrizar (C)">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          <small>BAJAR</small>
+        </button>
+
+        <button id="btn-strike" class="wheel-btn strike" title="Pulso de Éter (Q)">
+          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <small>PULSO</small>
+        </button>
+
+        <button id="btn-use" class="wheel-btn use" title="Interactuar (E)">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
+          <small>USAR</small>
+        </button>
       </div>
     </div>
   </div>
 
   <!-- =========================================================================
-       INTERPLANETARY STAR MAP, PAID TRANSIT & VEHICLE HANGAR MODAL (🪐)
+       INTERPLANETARY STAR MAP, PAID TRANSIT & VEHICLE HANGAR MODAL
        ========================================================================= -->
   <div id="starmap-modal" class="drawer-backdrop hidden">
     <div class="drawer-card wide-card">
       <div class="drawer-header">
-        <h3>🪐 CARTA ESTELAR, ECONOMÍA DE VIAJE & HANGAR</h3>
+        <h3>CARTA ESTELAR // ECONOMÍA DE TRÁNSITO Y HANGAR</h3>
         <button id="btn-close-starmap" class="close-x">✕</button>
       </div>
       <p class="drawer-sub">
-        En <b>THE QUEST</b> puedes volar manualmente por el cielo y el espacio hasta la Luna o Marte en tu <b>Avión/Nave Espacial</b> sin pagar peaje, o <b>pagar Créditos de Éter (✦)</b> en la Red de Portales Interplanetarios para teletransportarte al instante:
+        Vuela manualmente hacia el espacio exterior con tu <b>Caza o Crucero Interplanetario</b> sin costo de peaje, o utiliza la <b>Red de Teletransporte Cuántico</b> abonando Créditos de Éter (✦):
       </p>
 
-      <div class="section-label">🌐 RED DE TELETRANSPORTE PLANETARIO Y LUNAR (PEAJE EN CRÉDITOS ✦)</div>
+      <div class="section-label">RED DE TRÁNSITO INTERPLANETARIO (PEAJE EN CRÉDITOS ✦)</div>
       <div class="attractions-grid">
         <div class="attr-card" data-transit="earth_sanctuary" data-fare="50">
-          <div class="attr-icon">🌍</div>
+          <div class="attr-badge">TIERRA</div>
           <div class="attr-info">
-            <h4>Planeta Tierra • Santuario del Sol</h4>
-            <p>Isla central, Océano, Establos Reales, Paddock GT y Catacumbas.</p>
+            <h4>Santuario Solar de Aethelgard</h4>
+            <p>Plaza Central, Avenidas Cardinales, Pista Imperial GT y Puerto Espacial.</p>
           </div>
           <span class="attr-go">50 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="moon_base" data-fare="350">
-          <div class="attr-icon">🌕</div>
+          <div class="attr-badge">ÓRBITA</div>
           <div class="attr-info">
-            <h4>La Luna (Selene) • Base Cráter Tranquilidad</h4>
-            <p>Baja gravedad, vistas a la Tierra en el cielo y nodos de Helio-3 (+180 ✦ / +120 XP).</p>
+            <h4>La Luna (Selene) • Base Tranquilidad</h4>
+            <p>Baja gravedad (Alt: 260m), Cúpula Lunar y cosecha de Helio-3 (+180 ✦ / +120 XP).</p>
           </div>
           <span class="attr-go">350 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="mars_colony" data-fare="600">
-          <div class="attr-icon">🔴</div>
+          <div class="attr-badge">MARTE</div>
           <div class="attr-info">
-            <h4>Planeta Marte (Ares Prime) • Colonia Roja</h4>
-            <p>Cúpulas marcianas, Reactor Iónico y cristales Kyber (+320 ✦ / +220 XP).</p>
+            <h4>Planeta Marte • Colonia Ares Prime</h4>
+            <p>Altitud 340m, Reactor Iónico Principal y Cristales Kyber (+320 ✦ / +220 XP).</p>
           </div>
           <span class="attr-go">600 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="aurelia_ring" data-fare="950">
-          <div class="attr-icon">🪐</div>
+          <div class="attr-badge">PROFUNDO</div>
           <div class="attr-info">
-            <h4>Planeta Anillado Aurelia • Santuario Orbital</h4>
-            <p>Gigante con anillos dorados en el espacio profundo (+500 ✦ / +380 XP por nodo).</p>
+            <h4>Planeta Anillado Aurelia • Ciudadela</h4>
+            <p>Altitud 440m, Anillos Dorados y Matriz de Éter Puro (+500 ✦ / +380 XP).</p>
           </div>
           <span class="attr-go">950 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-action="race">
-          <div class="attr-icon">🏁</div>
+          <div class="attr-badge">EVENTO</div>
           <div class="attr-info">
-            <h4>Gran Circuito Imperial (Contrarreloj)</h4>
-            <p>Activa los 8 Anillos Solares en la Tierra para ganar +300 ✦ y +350 XP.</p>
+            <h4>Gran Circuito Imperial GT (Pista Circular)</h4>
+            <p>Recorre los 8 pórticos solares sobre el circuito de asfalto negro (+300 ✦ / +350 XP).</p>
           </div>
-          <span class="attr-go">Gratis ⟶</span>
+          <span class="attr-go">Iniciar ⟶</span>
         </div>
 
         <div class="attr-card" data-action="change_character">
-          <div class="attr-icon">👤</div>
+          <div class="attr-badge">LINAJE</div>
           <div class="attr-info">
-            <h4>Cámara de Linajes (Cambiar Personaje)</h4>
-            <p>Regresa al pedestal 3D para cambiar de explorador o importar tu .GLB.</p>
+            <h4>Cámara de Linajes (Cambiar Explorador)</h4>
+            <p>Regresa al pedestal de obsidiana para cambiar de armadura o importar un .GLB.</p>
           </div>
           <span class="attr-go">Abrir ⟶</span>
         </div>
       </div>
 
-      <div class="section-label" style="margin-top:14px;">🚀 HANGAR DE VEHÍCULOS Y MONTURAS (COMPRA ÚNICA CON CRÉDITOS ✦)</div>
+      <div class="section-label" style="margin-top:14px;">HANGAR DE FLOTA Y MONTURAS (ADQUISICIÓN PERMANENTE)</div>
       <div class="attractions-grid" id="hangar-grid">
         <div class="attr-card" data-buy-mount="horse">
-          <div class="attr-icon">🐎</div>
+          <div class="attr-badge">TIERRA</div>
           <div class="attr-info">
             <h4>Corcel Imperial</h4>
-            <p>Montura terrestre ágil para llanuras y cañones.</p>
+            <p>Montura de caballería ágil para avenidas y llanuras.</p>
           </div>
           <span class="attr-go" id="price-horse">Adquirido</span>
         </div>
 
         <div class="attr-card" data-buy-mount="supercar">
-          <div class="attr-icon">🏎️</div>
+          <div class="attr-badge">PISTA</div>
           <div class="attr-info">
-            <h4>Supercar GT (Ferrari)</h4>
-            <p>Velocidad extrema sobre tierra y pistas imperiales.</p>
+            <h4>Supercar GT (Cabina Cerrada)</h4>
+            <p>Deportivo de competición con suspensión activa e inclinación en curva.</p>
           </div>
           <span class="attr-go" id="price-supercar">400 ✦</span>
         </div>
 
         <div class="attr-card" data-buy-mount="mythic_bird">
-          <div class="attr-icon">🦅</div>
+          <div class="attr-badge">CIELO</div>
           <div class="attr-info">
             <h4>Ave Mítica Solar</h4>
-            <p>Vuelo libre por los cielos y miradores flotantes.</p>
+            <p>Vuelo orgánico por las cumbres y templos de la Tierra.</p>
           </div>
           <span class="attr-go" id="price-mythic_bird">650 ✦</span>
         </div>
 
         <div class="attr-card" data-buy-mount="jet">
-          <div class="attr-icon">✈️</div>
+          <div class="attr-badge">ATMOS</div>
           <div class="attr-info">
-            <h4>Avión Caza Atmosférico</h4>
-            <p>Vuelo supersónico de alta cota y ascenso estratosférico.</p>
+            <h4>Caza Interceptor Supersónico</h4>
+            <p>Cabina blindada de cristal oscuro, alabeo aerodinámico y postquemador.</p>
           </div>
           <span class="attr-go" id="price-jet">1,200 ✦</span>
         </div>
 
         <div class="attr-card" data-buy-mount="starship">
-          <div class="attr-icon">🚀</div>
+          <div class="attr-badge">ORBITAL</div>
           <div class="attr-info">
-            <h4>Nave Espacial Interplanetaria</h4>
-            <p>Propulsión warp para cruzar el espacio hacia la Luna, Marte y Aurelia sin pagar peajes.</p>
+            <h4>Crucero Interplanetario Warp</h4>
+            <p>Anillo gravitacional dorado para cruzar hacia la Luna, Marte y Aurelia.</p>
           </div>
           <span class="attr-go" id="price-starship">2,500 ✦</span>
         </div>
@@ -298,52 +373,52 @@
   </div>
 
   <!-- =========================================================================
-       LEVEL 1-100 & LORE SKILL TREE MODAL (🧬)
+       LEVEL 1-100 & SKILL TREE MODAL
        ========================================================================= -->
   <div id="skills-modal" class="drawer-backdrop hidden">
     <div class="drawer-card wide-card">
       <div class="drawer-header">
-        <h3>🧬 CÓDICE DE PROGRESIÓN (NIVEL 1 AL 100) & HABILIDADES</h3>
+        <h3>CÓDICE DE PROGRESIÓN (NIVEL 1 AL 100) & HABILIDADES</h3>
         <button id="btn-close-skills" class="close-x">✕</button>
       </div>
       <div class="skills-summary-banner">
-        <div>NIVEL ACTUAL: <b id="sk-lvl">1</b> / 100 (Tope Máximo)</div>
-        <div>PUNTOS DE HABILIDAD DISPONIBLES: <b id="sk-pts" class="gold-txt">1</b></div>
+        <div>RANGO DE EXPLORADOR: <b id="sk-lvl">1</b> / 100 (Tope Máximo)</div>
+        <div>PUNTOS DE CÓDICE DISPONIBLES: <b id="sk-pts" class="gold-txt">1</b></div>
       </div>
 
       <div class="attractions-grid">
         <div class="attr-card" data-upgrade="velocity">
-          <div class="attr-icon">⚡</div>
+          <div class="attr-badge">VEL</div>
           <div class="attr-info">
             <h4>Impulso Cinético (Nv. <span id="sk-val-velocity">0</span>/25)</h4>
-            <p>Aumenta la velocidad a pie, en Corcel, Supercar, Avión y Nave Espacial en +6% por rango.</p>
+            <p>Aumenta +6% por rango la velocidad de infantería, Supercar, Caza y Crucero Espacial.</p>
           </div>
           <span class="attr-go">+ Mejorar</span>
         </div>
 
         <div class="attr-card" data-upgrade="aetherPower">
-          <div class="attr-icon">🔥</div>
+          <div class="attr-badge">ÉTER</div>
           <div class="attr-info">
             <h4>Resonancia de Éter (Nv. <span id="sk-val-aetherPower">0</span>/25)</h4>
-            <p>Aumenta el daño de tu Pulso [⚡] y multiplica en +15% los Créditos y XP al recolectar cristales.</p>
+            <p>Aumenta el daño del Pulso y multiplica +15% los Créditos y XP al extraer nodos.</p>
           </div>
           <span class="attr-go">+ Mejorar</span>
         </div>
 
         <div class="attr-card" data-upgrade="vitality">
-          <div class="attr-icon">🛡️</div>
+          <div class="attr-badge">ESC</div>
           <div class="attr-info">
             <h4>Coraza Inmortal (Nv. <span id="sk-val-vitality">0</span>/25)</h4>
-            <p>Incrementa tu Salud Máxima en +25 HP por rango y regenera tu escudo planetario.</p>
+            <p>Incrementa tu Integridad Máxima en +25 HP por rango.</p>
           </div>
           <span class="attr-go">+ Mejorar</span>
         </div>
 
         <div class="attr-card" data-upgrade="cosmicMastery">
-          <div class="attr-icon">🌌</div>
+          <div class="attr-badge">NAV</div>
           <div class="attr-info">
             <h4>Navegación Astral (Nv. <span id="sk-val-cosmicMastery">0</span>/25)</h4>
-            <p>Reduce hasta un 50% las tarifas de teletransporte interplanetario y mejora el control en baja gravedad.</p>
+            <p>Reduce hasta un 50% el costo de peajes en la Red de Tránsito Interplanetario.</p>
           </div>
           <span class="attr-go">+ Mejorar</span>
         </div>
@@ -355,15 +430,15 @@
   <div id="social-drawer" class="drawer-backdrop hidden">
     <div class="drawer-card">
       <div class="drawer-header">
-        <h3>🏆 CLASIFICACIÓN INTERPLANETARIA & CANAL GLOBAL</h3>
+        <h3>CLASIFICACIÓN INTERPLANETARIA & CANAL COMMS</h3>
         <button id="btn-close-drawer" class="close-x">✕</button>
       </div>
       <div id="leaderboard-box" class="drawer-leaderboard"></div>
       <div class="drawer-chat-section">
         <div id="chat-messages" class="drawer-chat-log"></div>
         <form id="chat-form" class="drawer-chat-form">
-          <input type="text" id="chat-input" placeholder="Enviar mensaje al sistema solar..." maxlength="120" autocomplete="off" />
-          <button type="submit">Enviar</button>
+          <input type="text" id="chat-input" placeholder="Transmitir al canal planetario..." maxlength="120" autocomplete="off" />
+          <button type="submit">Transmitir</button>
         </form>
       </div>
     </div>
@@ -373,17 +448,17 @@
   <div id="archon-modal" class="drawer-backdrop hidden">
     <div class="drawer-card">
       <div class="drawer-header">
-        <h3>🔮 ARCONTE AETHER // GUARDIÁN IA</h3>
+        <h3>ARCONTE AETHER // NÚCLEO DE SABIDURÍA IA</h3>
         <button id="btn-close-archon" class="close-x">✕</button>
       </div>
-      <div id="archon-reply-box" class="archon-text-box">Conectando con el santuario...</div>
+      <div id="archon-reply-box" class="archon-text-box">Sincronizando con el Templo del Norte...</div>
       <div class="archon-chips">
         <button type="button" class="ans-chip" data-ans="El Tiempo">«El Tiempo»</button>
         <button type="button" class="ans-chip" data-ans="El Horizonte">«El Horizonte»</button>
         <button type="button" class="ans-chip" data-ans="El Eco">«El Eco»</button>
       </div>
       <form id="archon-form" class="drawer-chat-form">
-        <input type="text" id="archon-input" placeholder="Escribe tu respuesta al enigma..." autocomplete="off" />
+        <input type="text" id="archon-input" placeholder="Pronuncia tu respuesta al Arconte..." autocomplete="off" />
         <button type="submit">Responder</button>
       </form>
     </div>
@@ -393,14 +468,14 @@
   <div id="photo-modal" class="drawer-backdrop hidden">
     <div class="drawer-card">
       <div class="drawer-header">
-        <h3>📸 CAPTURA CINEMATOGRÁFICA & INVITACIÓN</h3>
+        <h3>CAPTURA ÓPTICA & ENLACE MULTIJUGADOR</h3>
         <button id="btn-close-photo" class="close-x">✕</button>
       </div>
       <img id="photo-preview" class="photo-preview" alt="Captura de The Quest" />
       <p id="photo-caption" class="photo-caption"></p>
       <div class="photo-buttons">
-        <button id="btn-copy-link" class="btn-luxury-enter compact">🔗 Copiar Enlace Directo</button>
-        <a id="btn-download-photo" class="btn-luxury-enter compact" download="the-quest-world.png">💾 Guardar Imagen</a>
+        <button id="btn-copy-link" class="btn-luxury-enter compact">Copiar Enlace</button>
+        <a id="btn-download-photo" class="btn-luxury-enter compact" download="the-quest-world.png">Guardar PNG</a>
       </div>
     </div>
   </div>
