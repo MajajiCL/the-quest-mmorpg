@@ -47,11 +47,13 @@ const VALID_MOUNTS = [
   'supercar',      // Supercar GT (Circuito & Tierra)
   'mythic_bird',   // Ave Mítica Solar (Vuelo Atmosférico)
   'jet',           // Caza Interceptor (Vuelo Supersónico)
-  'starship'       // Crucero Estelar (Vuelo Orbital e Interplanetario)
+  'starship',      // Crucero Estelar (Vuelo Orbital e Interplanetario)
+  'ship'           // Galeón Naval Imperial (Navegación Marítima Oceánica)
 ];
 
 const VEHICLE_PRICES = {
   horse: 0,
+  ship: 0,         // Unlocked by default at the Imperial Harbor!
   supercar: 400,
   mythic_bird: 650,
   jet: 1200,
@@ -60,6 +62,7 @@ const VEHICLE_PRICES = {
 
 const TRANSIT_FARES = {
   earth_sanctuary: 50,
+  ocean_dragon_island: 150,
   moon_base: 350,
   mars_colony: 600,
   aurelia_ring: 950
@@ -131,10 +134,15 @@ for (const e of seedExplorers) {
 // Spawn Planetary & Lunar Resource Nodes
 let nextNodeId = 1;
 function spawnPlanetaryNodes() {
-  for (let i = 0; i < 40; i++) {
+  for (let i = 0; i < 36; i++) {
     const angle = Math.random() * Math.PI * 2;
-    const rad = 20 + Math.random() * 88;
+    const rad = 20 + Math.random() * 68;
     createNode(Math.cos(angle) * rad, 1.1, Math.sin(angle) * rad, 65, 50, 'earth');
+  }
+  // Ocean Archipelago Pearl Nodes (Dragon Island & Golden Reef Island)
+  for (let i = 0; i < 12; i++) {
+    createNode((Math.random() - 0.5) * 45, 1.2, 185 + (Math.random() - 0.5) * 45, 150, 110, 'ocean');
+    createNode(165 + (Math.random() - 0.5) * 40, 1.2, 110 + (Math.random() - 0.5) * 40, 160, 120, 'ocean');
   }
   for (let i = 0; i < 18; i++) {
     createNode((Math.random() - 0.5) * 75, 261.2, -680 + (Math.random() - 0.5) * 75, 190, 140, 'moon');
@@ -177,6 +185,11 @@ function spawnWorldMonsters() {
     // Earth MVP / Raid Boss (East Coliseum Outer Ring)
     { id: 'boss_earth', name: '★ MVP: COLOSO DE AETHELGARD', level: 25, rank: 'boss', model: 'BossRobot', planet: 'earth', homeX: 62, homeY: 0, homeZ: -18, patrolR: 5, maxHp: 2400, atk: 45, xp: 1250, coins: 950 },
 
+    // Ocean Archipelago Hunting Spots & Sea Dragon Raid Boss (Level 28 - 40)
+    { id: 'mob_sea1', name: 'Corsario del Abismo', level: 28, rank: 'elite', model: 'XbotMob', planet: 'ocean', homeX: -12, homeY: 0, homeZ: 175, patrolR: 7, maxHp: 920, atk: 35, xp: 540, coins: 380 },
+    { id: 'mob_sea2', name: 'Guardián del Arrecife Dorado', level: 30, rank: 'elite', model: 'Robot', planet: 'ocean', homeX: 165, homeY: 0, homeZ: 110, patrolR: 7, maxHp: 980, atk: 38, xp: 590, coins: 420 },
+    { id: 'boss_ocean', name: '★ RAID BOSS MARINO: DRAGÓN LEVIATÁN', level: 38, rank: 'boss', model: 'DragonBoss', planet: 'ocean', homeX: 0, homeY: 0, homeZ: 192, patrolR: 6, maxHp: 3400, atk: 56, xp: 1850, coins: 1450 },
+
     // Moon Selene Hunting Spot (Level 30 - 45)
     { id: 'mob_m1', name: 'Espectro Lunar de Helio', level: 32, rank: 'elite', model: 'Robot', planet: 'moon', homeX: -18, homeY: 260, homeZ: -668, patrolR: 7, maxHp: 1100, atk: 42, xp: 680, coins: 460 },
     { id: 'mob_m2', name: 'Espectro Lunar de Helio', level: 35, rank: 'elite', model: 'Robot', planet: 'moon', homeX: 18, homeY: 260, homeZ: -668, patrolR: 7, maxHp: 1250, atk: 46, xp: 740, coins: 510 },
@@ -189,7 +202,7 @@ function spawnWorldMonsters() {
 
     // Ringed Planet Aurelia Hunting Spot (Level 80 - 100 Endgame)
     { id: 'mob_au1', name: 'Serafín del Vacío', level: 84, rank: 'elite', model: 'XbotMob', planet: 'aurelia', homeX: 660, homeY: 440, homeZ: -1335, patrolR: 8, maxHp: 3400, atk: 90, xp: 2100, coins: 1400 },
-    { id: 'boss_aurelia', name: '★ EMPERADOR DEL ANILLO AURELIA', level: 99, rank: 'boss', model: 'BossRobot', planet: 'aurelia', homeX: 680, homeY: 440, homeZ: -1375, patrolR: 6, maxHp: 11000, atk: 130, xp: 7500, coins: 6000 }
+    { id: 'boss_aurelia', name: '★ EMPERADOR DRAGÓN DE AURELIA', level: 99, rank: 'boss', model: 'DragonBoss', planet: 'aurelia', homeX: 680, homeY: 440, homeZ: -1375, patrolR: 6, maxHp: 11000, atk: 130, xp: 7500, coins: 6000 }
   ];
 
   for (const def of spotDefs) {
@@ -463,7 +476,8 @@ function spawnAutonomousExplorers(count = 12) {
     const angle = (i / count) * Math.PI * 2;
     const isRacer = i === 5 || i === 10;
     const isFlier = i === 8;
-    const radius = isRacer ? 44 : (20 + (i % 4) * 5.5);
+    const isSailor = i === 3 || i === 9;
+    const radius = isSailor ? 124 : (isRacer ? 44 : (20 + (i % 4) * 5.5));
     const bot = {
       id,
       name: BOT_NAMES[i % BOT_NAMES.length],
@@ -471,7 +485,7 @@ function spawnAutonomousExplorers(count = 12) {
       level: 8 + i * 7,
       gearLevel: Math.min(15, 3 + i),
       wingsTier: i >= 8 ? 2 : (i >= 4 ? 1 : 0),
-      mount: i === 2 ? 'horse' : (isRacer ? 'supercar' : (isFlier ? 'mythic_bird' : 'none')),
+      mount: isSailor ? 'ship' : (i === 2 ? 'horse' : (isRacer ? 'supercar' : (isFlier ? 'mythic_bird' : 'none'))),
       x: Math.cos(angle) * radius,
       y: isFlier ? 15 : 0,
       z: Math.sin(angle) * radius,
@@ -485,7 +499,7 @@ function spawnAutonomousExplorers(count = 12) {
       isBot: true,
       isStressBot: false,
       phase: Math.random() * Math.PI * 2,
-      speed: isRacer ? 11.5 : (i === 2 ? 6.0 : 3.4),
+      speed: isSailor ? 9.5 : (isRacer ? 11.5 : (i === 2 ? 6.0 : 3.4)),
       centerR: radius
     };
     players.set(id, bot);
@@ -608,7 +622,7 @@ wss.on('connection', (ws) => {
       soulshots: 180,  // Cargas de Éter (Soulshots)
       potions: 5       // Cargas de Reparación Vital
     },
-    unlockedMounts: ['none', 'horse'],
+    unlockedMounts: ['none', 'horse', 'ship'],
     mount: 'none',
     x: Math.cos(spawnAngle) * 5,
     y: 0,

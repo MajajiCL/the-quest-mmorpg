@@ -54,8 +54,8 @@ const state = {
     soulshots: 180,
     potions: 5
   },
-  unlockedMounts: ['none', 'horse'],
-  mountType: 'none', // 'none' | 'horse' | 'supercar' | 'mythic_bird' | 'jet' | 'starship'
+  unlockedMounts: ['none', 'horse', 'ship'],
+  mountType: 'none', // 'none' | 'horse' | 'supercar' | 'mythic_bird' | 'jet' | 'starship' | 'ship'
   weatherIndex: 0,
   hp: 260,
   maxHp: 260,
@@ -85,6 +85,11 @@ const PLANETARY_DESTINATIONS = {
   earth_sanctuary: {
     name: 'SANTUARIO SOLAR',
     pos: new THREE.Vector3(0, 0, 18),
+    surfaceY: 0
+  },
+  ocean_dragon_island: {
+    name: 'ISLA DEL DRAGÓN',
+    pos: new THREE.Vector3(0, 0, 175),
     surfaceY: 0
   },
   moon_base: {
@@ -433,6 +438,47 @@ const aureliaSurfaceMat = new THREE.MeshStandardMaterial({
   metalness: 0.28
 });
 
+const woodDiffuse = texLoader.load('/textures/hardwood2_diffuse.jpg');
+const woodRoughness = texLoader.load('/textures/hardwood2_roughness.jpg');
+const woodBump = texLoader.load('/textures/hardwood2_bump.jpg');
+[woodDiffuse, woodRoughness, woodBump].forEach((t) => {
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(8, 8);
+});
+woodDiffuse.colorSpace = THREE.SRGBColorSpace;
+
+const hardwoodMat = new THREE.MeshStandardMaterial({
+  map: woodDiffuse,
+  roughnessMap: woodRoughness,
+  bumpMap: woodBump,
+  bumpScale: 0.04,
+  roughness: 0.62,
+  metalness: 0.08
+});
+
+const sandBeachMat = new THREE.MeshStandardMaterial({
+  color: 0xe6cda5,
+  roughness: 0.88,
+  metalness: 0.02,
+  bumpMap: brickBump,
+  bumpScale: 0.02
+});
+
+const lushGrassMat = new THREE.MeshStandardMaterial({
+  color: 0x295939,
+  roughness: 0.78,
+  metalness: 0.04,
+  bumpMap: brickBump,
+  bumpScale: 0.03
+});
+
+const sailCanvasMat = new THREE.MeshStandardMaterial({
+  color: 0xfff6e5,
+  roughness: 0.65,
+  metalness: 0.05,
+  side: THREE.DoubleSide
+});
+
 const worldGroup = new THREE.Group();
 scene.add(worldGroup);
 
@@ -441,8 +487,11 @@ const interactiveAttractions = [];
 const raceRingPositions = [];
 const raceRingMeshes = [];
 const animatedFlock = [];
+const animatedNavalFleet = [];
+const lighthouseBeams = [];
 const celestialBodies = [];
 const wayfinderPlaques = [];
+let aetherEmbers = null;
 
 function createDiegeticWayfinder(title, subtitle, pos, maxVisibleDist = 52) {
   const canvas = document.createElement('canvas');
@@ -546,12 +595,86 @@ function createUnifiedPlanetBody(radius, plateauRadius, material, atmoColorHex) 
 
 function buildMasterPlannedUniverse() {
   // ==========================================================================
-  // 1. PLANET EARTH: MASTER-PLANNED CITADEL OF AETHELGARD (Y = 0m)
+  // 1. PLANET EARTH: MASTER-PLANNED ISLAND CITADEL OF AETHELGARD & OCEAN HARBOR
   // ==========================================================================
-  const earthContinent = new THREE.Mesh(new THREE.CylinderGeometry(155, 168, 2.8, 64), stoneCourtyardMat);
-  earthContinent.position.y = -1.4;
+  // Sloping Golden Sand Beach Skirt (r = 76m to 94m) meeting the turquoise Ocean Water
+  const goldenBeach = new THREE.Mesh(new THREE.CylinderGeometry(76, 95, 1.4, 72), sandBeachMat);
+  goldenBeach.position.y = -0.72;
+  goldenBeach.receiveShadow = true;
+  worldGroup.add(goldenBeach);
+
+  // Main Stone Citadel Courtyard (r = 76m) so the ocean is visible from the entire city!
+  const earthContinent = new THREE.Mesh(new THREE.CylinderGeometry(76, 80, 2.2, 72), stoneCourtyardMat);
+  earthContinent.position.y = -1.1;
   earthContinent.receiveShadow = true;
   worldGroup.add(earthContinent);
+
+  // Northern Spaceport Peninsula & Causeway (0, 0, -88) extending into the northern sea
+  const northPeninsula = new THREE.Mesh(new THREE.CylinderGeometry(24, 29, 2.2, 48), stoneCourtyardMat);
+  northPeninsula.position.set(0, -1.1, -88);
+  northPeninsula.receiveShadow = true;
+  worldGroup.add(northPeninsula);
+
+  // 4 Lush Emerald Garden Terraces & Turquoise Reflecting Pools in the inner quadrants
+  [
+    [-22, -22],
+    [22, -22],
+    [-26, 26],
+    [26, 26]
+  ].forEach(([gx, gz]) => {
+    const gardenBorder = new THREE.Mesh(new THREE.CylinderGeometry(8.6, 9.2, 0.28, 32), polishedMarbleMat);
+    gardenBorder.position.set(gx, 0.14, gz);
+    gardenBorder.receiveShadow = true;
+    worldGroup.add(gardenBorder);
+
+    const grassLawn = new THREE.Mesh(new THREE.CylinderGeometry(8.1, 8.2, 0.32, 32), lushGrassMat);
+    grassLawn.position.set(gx, 0.16, gz);
+    grassLawn.receiveShadow = true;
+    worldGroup.add(grassLawn);
+
+    const poolBasin = new THREE.Mesh(
+      new THREE.CylinderGeometry(4.2, 4.2, 0.36, 24),
+      new THREE.MeshStandardMaterial({ color: 0x1098ad, roughness: 0.08, metalness: 0.35 })
+    );
+    poolBasin.position.set(gx, 0.18, gz);
+    worldGroup.add(poolBasin);
+  });
+
+  // 16 Warm-Lit Imperial Streetlamp Braziers along the Cardinal Boulevards
+  const lampCoords = [
+    [-5.4, 12], [5.4, 12], [-5.4, 30], [5.4, 30], [-5.4, 54], [5.4, 54],
+    [-5.4, -15], [5.4, -15], [-5.4, -32], [5.4, -32], [-5.4, -64], [5.4, -64],
+    [-25, -5.4], [-25, 5.4], [25, -5.4], [25, 5.4]
+  ];
+  lampCoords.forEach(([lx, lz]) => {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 4.6, 12), obsidianMat);
+    post.position.set(lx, 2.3, lz);
+    post.castShadow = true;
+    worldGroup.add(post);
+
+    const lantern = new THREE.Mesh(
+      new THREE.SphereGeometry(0.36, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xffd278 })
+    );
+    lantern.position.set(lx, 4.75, lz);
+    worldGroup.add(lantern);
+  });
+
+  // Floating Golden Aether Embers across the Citadel
+  const emberCount = 360;
+  const emberGeo = new THREE.BufferGeometry();
+  const emberPos = new Float32Array(emberCount * 3);
+  for (let i = 0; i < emberCount * 3; i += 3) {
+    emberPos[i] = (Math.random() - 0.5) * 220;
+    emberPos[i + 1] = 0.8 + Math.random() * 18;
+    emberPos[i + 2] = (Math.random() - 0.5) * 260;
+  }
+  emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
+  aetherEmbers = new THREE.Points(
+    emberGeo,
+    new THREE.PointsMaterial({ color: 0xffd278, size: 0.42, transparent: true, opacity: 0.78 })
+  );
+  worldGroup.add(aetherEmbers);
 
   // Outer Marble Perimeter Balustrade & 24 Colonnade Pillars (r = 56m) with SOLID COLLIDERS
   const pillarGeo = new THREE.CylinderGeometry(1.05, 1.25, 11.5, 24);
@@ -824,6 +947,141 @@ function buildMasterPlannedUniverse() {
     raceRingMeshes.push(ringMesh);
   }
 
+  // --------------------------------------------------------------------------
+  // SOUTH AXIS (0, 0, +66 to +102): PUERTO NAVAL IMPERIAL, MUELLE & FARO MARÍTIMO
+  // --------------------------------------------------------------------------
+  const southHarborPromenade = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.08, 52), obsidianMat);
+  southHarborPromenade.position.set(0, 0.04, 46);
+  southHarborPromenade.receiveShadow = true;
+  worldGroup.add(southHarborPromenade);
+
+  const harborPierDeck = new THREE.Mesh(new THREE.BoxGeometry(10.5, 0.55, 36), hardwoodMat);
+  harborPierDeck.position.set(0, 0.12, 86);
+  harborPierDeck.castShadow = true;
+  harborPierDeck.receiveShadow = true;
+  worldGroup.add(harborPierDeck);
+
+  // Wooden Pier Pilings & Gold Mooring Bollards into the Ocean
+  [72, 80, 88, 96, 102].forEach((pz) => {
+    [-4.8, 4.8].forEach((px) => {
+      const piling = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.36, 3.6, 12), hardwoodMat);
+      piling.position.set(px, -0.6, pz);
+      worldGroup.add(piling);
+
+      const bollard = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.28, 0.75, 12), ancientGoldMat);
+      bollard.position.set(px, 0.65, pz);
+      worldGroup.add(bollard);
+    });
+  });
+
+  // 22m Imperial Maritime Lighthouse at (+15, 0, +86) with Rotating Searchlight Beam
+  const lighthouseBase = new THREE.Mesh(new THREE.CylinderGeometry(2.8, 3.8, 3.2, 24), obsidianMat);
+  lighthouseBase.position.set(15, 1.6, 86);
+  lighthouseBase.castShadow = true;
+  worldGroup.add(lighthouseBase);
+
+  const lighthouseTower = new THREE.Mesh(new THREE.CylinderGeometry(1.75, 2.55, 16.5, 24), polishedMarbleMat);
+  lighthouseTower.position.set(15, 11.2, 86);
+  lighthouseTower.castShadow = true;
+  worldGroup.add(lighthouseTower);
+  addCylinderCollider(15, 86, 3.4, -2, 24);
+
+  const lighthouseLantern = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 2.6, 16), canopyGlassMat);
+  lighthouseLantern.position.set(15, 20.4, 86);
+  worldGroup.add(lighthouseLantern);
+
+  const lighthouseRoof = new THREE.Mesh(new THREE.ConeGeometry(2.1, 2.2, 24), ancientGoldMat);
+  lighthouseRoof.position.set(15, 22.8, 86);
+  worldGroup.add(lighthouseRoof);
+
+  const beamPivot = new THREE.Group();
+  beamPivot.position.set(15, 20.4, 86);
+  const beamCone = new THREE.Mesh(
+    new THREE.ConeGeometry(4.2, 34, 16, 1, true),
+    new THREE.MeshBasicMaterial({ color: 0xffe2a6, transparent: true, opacity: 0.16, side: THREE.DoubleSide })
+  );
+  beamCone.rotation.x = Math.PI / 2;
+  beamCone.position.z = 17;
+  beamPivot.add(beamCone);
+  worldGroup.add(beamPivot);
+  lighthouseBeams.push(beamPivot);
+
+  createDiegeticWayfinder(
+    'PUERTO NAVAL IMPERIAL (SUR)',
+    'Galeón de 3 Mástiles Gratuito • Presiona [E] o [6] para zarpar al Océano',
+    new THREE.Vector3(0, 6.2, 78),
+    65
+  );
+
+  interactiveAttractions.push({
+    position: new THREE.Vector3(0, 0, 84),
+    radius: 10.5,
+    label: 'Zarpar en el Galeón Naval Imperial de 3 Mástiles [6]',
+    action: () => requestMountEquipOrBuy('ship')
+  });
+
+  // --------------------------------------------------------------------------
+  // OCEAN ARCHIPELAGO ISLAND 1: ISLA DEL DRAGÓN ABISAL (0, 0, +185)
+  // --------------------------------------------------------------------------
+  const dragonIslandBeach = new THREE.Mesh(new THREE.CylinderGeometry(31, 38, 1.5, 48), sandBeachMat);
+  dragonIslandBeach.position.set(0, -0.68, 185);
+  dragonIslandBeach.receiveShadow = true;
+  worldGroup.add(dragonIslandBeach);
+
+  const dragonIslandGrass = new THREE.Mesh(new THREE.CylinderGeometry(26, 30, 1.9, 48), lushGrassMat);
+  dragonIslandGrass.position.set(0, -0.78, 185);
+  dragonIslandGrass.receiveShadow = true;
+  worldGroup.add(dragonIslandGrass);
+
+  const dragonIslandDock = new THREE.Mesh(new THREE.BoxGeometry(6.5, 0.5, 16), hardwoodMat);
+  dragonIslandDock.position.set(0, 0.15, 152);
+  dragonIslandDock.receiveShadow = true;
+  worldGroup.add(dragonIslandDock);
+
+  const dragonAltar = new THREE.Mesh(new THREE.CylinderGeometry(6.5, 7.8, 0.8, 24), obsidianMat);
+  dragonAltar.position.set(0, 0.4, 192);
+  dragonAltar.receiveShadow = true;
+  worldGroup.add(dragonAltar);
+
+  createDiegeticWayfinder(
+    'ISLA DEL DRAGÓN ABISAL (ARCHIPIÉLAGO SUR)',
+    'Raid Boss Marino Dragón Leviatán (Nv.38) y Perlas Abisales',
+    new THREE.Vector3(0, 7.8, 185),
+    85
+  );
+
+  // --------------------------------------------------------------------------
+  // OCEAN ARCHIPELAGO ISLAND 2: ISLA DEL ARRECIFE DORADO (+165, 0, +110)
+  // --------------------------------------------------------------------------
+  const reefIslandBeach = new THREE.Mesh(new THREE.CylinderGeometry(24, 30, 1.5, 40), sandBeachMat);
+  reefIslandBeach.position.set(165, -0.68, 110);
+  reefIslandBeach.receiveShadow = true;
+  worldGroup.add(reefIslandBeach);
+
+  const reefIslandGrass = new THREE.Mesh(new THREE.CylinderGeometry(19, 23, 1.9, 40), lushGrassMat);
+  reefIslandGrass.position.set(165, -0.78, 110);
+  reefIslandGrass.receiveShadow = true;
+  worldGroup.add(reefIslandGrass);
+
+  const treasureChest = new THREE.Mesh(new THREE.BoxGeometry(2.2, 1.5, 1.5), ancientGoldMat);
+  treasureChest.position.set(165, 0.9, 110);
+  treasureChest.castShadow = true;
+  worldGroup.add(treasureChest);
+
+  createDiegeticWayfinder(
+    'ISLA DEL ARRECIFE DORADO (ESTE MARÍTIMO)',
+    'Tesoro Naval Hundido • Presiona [E] para reclamar (+600 ✦ / +700 XP)',
+    new THREE.Vector3(165, 6.8, 110),
+    80
+  );
+
+  interactiveAttractions.push({
+    position: new THREE.Vector3(165, 0, 110),
+    radius: 9.0,
+    label: 'Reclamar Tesoro del Arrecife Dorado (+600 ✦ / +700 XP)',
+    action: () => rewardAttraction('Tesoro Naval del Arrecife Dorado', 600, 700)
+  });
+
   // ==========================================================================
   // 2. THE MOON (SELENE) — SEAMLESS SCULPTED CRATER SPHERE (Surface at 0, 260, -680)
   // ==========================================================================
@@ -941,6 +1199,66 @@ gltfLoader.setDRACOLoader(dracoLoader);
 const modelCache = new Map();
 const globalEnvMixers = [];
 
+function normalizeAndGroundModel(model, targetMaxDim = 6.0, groundOffset = 0) {
+  const wrapper = new THREE.Group();
+  wrapper.add(model);
+  model.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(model);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+  const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+  const scale = targetMaxDim / maxDim;
+  model.scale.multiplyScalar(scale);
+  model.position.set(
+    -center.x * scale,
+    -box.min.y * scale + groundOffset,
+    -center.z * scale
+  );
+  return wrapper;
+}
+
+function createImperialGalleonMesh(targetLength = 12.5) {
+  const g = new THREE.Group();
+  if (modelCache.has('SailShip')) {
+    const rawShip = modelCache.get('SailShip').scene.clone();
+    rawShip.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        const n = (ch.name || '').toLowerCase();
+        if (n.includes('sail')) {
+          ch.material = sailCanvasMat;
+        } else {
+          ch.material = hardwoodMat;
+        }
+      }
+    });
+    const normShip = normalizeAndGroundModel(rawShip, targetLength, -0.45);
+    g.add(normShip);
+  } else if (modelCache.has('Sailboat')) {
+    const rawBoat = modelCache.get('Sailboat').scene.clone();
+    const normBoat = normalizeAndGroundModel(rawBoat, targetLength * 0.8, -0.35);
+    g.add(normBoat);
+  } else {
+    const hull = new THREE.Mesh(new THREE.BoxGeometry(3.4, 1.8, 10.5), hardwoodMat);
+    hull.position.y = 0.6;
+    g.add(hull);
+  }
+
+  // Captain's Helm Wheel on the Quarterdeck so the Captain avatar stands/sits right behind the wheel!
+  const helmPost = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 1.1, 12), hardwoodMat);
+  helmPost.position.set(0, 2.05, -1.55);
+  g.add(helmPost);
+
+  const helmWheel = new THREE.Mesh(new THREE.TorusGeometry(0.42, 0.06, 12, 24), ancientGoldMat);
+  helmWheel.position.set(0, 2.45, -1.35);
+  g.add(helmWheel);
+
+  return g;
+}
+
 let coreModelsLoaded = false;
 async function preloadCoreModels() {
   if (coreModelsLoaded) return;
@@ -952,7 +1270,12 @@ async function preloadCoreModels() {
     { key: 'Ferrari', url: '/models/ferrari.glb' },
     { key: 'Stork', url: '/models/Stork.glb' },
     { key: 'Flamingo', url: '/models/Flamingo.glb' },
-    { key: 'PrimaryIonDrive', url: '/models/PrimaryIonDrive.glb' }
+    { key: 'PrimaryIonDrive', url: '/models/PrimaryIonDrive.glb' },
+    { key: 'SailShip', url: '/models/Sail_ship.glb' },
+    { key: 'Sailboat', url: '/models/sailboat.glb' },
+    { key: 'JetFighter', url: '/models/jet_fighter.glb' },
+    { key: 'Tree', url: '/models/tree.glb' },
+    { key: 'Dragon', url: '/models/DragonAttenuation.glb' }
   ];
 
   await Promise.all(
@@ -1078,6 +1401,139 @@ function populateWorldAttractionsFromCache() {
       });
     }
   }
+
+  // 5. Lush 3D Botanical Forests & Coastal Groves (56+ Real 3D Trees via tree.glb)
+  if (modelCache.has('Tree') && !populatedLandmarks.has('BotanicalForests')) {
+    populatedLandmarks.add('BotanicalForests');
+    const treeScene = modelCache.get('Tree').scene;
+
+    const plantTree = (tx, ty, tz, heightMeters = 6.8, rotY = 0) => {
+      const rawTree = treeScene.clone();
+      rawTree.traverse((ch) => {
+        if (ch.isMesh) {
+          ch.castShadow = true;
+          ch.receiveShadow = true;
+        }
+      });
+      const treeObj = normalizeAndGroundModel(rawTree, heightMeters, -0.15);
+      treeObj.position.set(tx, ty, tz);
+      treeObj.rotation.y = rotY;
+      worldGroup.add(treeObj);
+    };
+
+    // Inner Quadrant Emerald Gardens (16 trees)
+    [
+      [-22, -22],
+      [22, -22],
+      [-26, 26],
+      [26, 26]
+    ].forEach(([gx, gz], qIdx) => {
+      for (let k = 0; k < 4; k++) {
+        const a = (k / 4) * Math.PI * 2 + 0.4;
+        plantTree(
+          gx + Math.cos(a) * 6.4,
+          0.1,
+          gz + Math.sin(a) * 6.4,
+          6.2 + ((qIdx + k) % 3) * 0.8,
+          a
+        );
+      }
+    });
+
+    // Golden Beach Coastline & Perimeter Groves (24 trees)
+    for (let i = 0; i < 24; i++) {
+      const angle = (i / 24) * Math.PI * 2;
+      const deg = Math.round(THREE.MathUtils.radToDeg(angle) + 360) % 90;
+      if (deg < 10 || deg > 80) continue; // Keep cardinal avenues & harbor pier clear
+      const r = 68 + (i % 3) * 3.5;
+      plantTree(
+        Math.cos(angle) * r,
+        -0.1,
+        Math.sin(angle) * r,
+        6.5 + (i % 4) * 0.9,
+        angle * 1.7
+      );
+    }
+
+    // Archipelago Island 1: Isla del Dragón Abisal Groves (10 trees)
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2 + 0.3;
+      if (Math.sin(a) < -0.75) continue; // Keep northern dock entrance clear
+      plantTree(
+        Math.cos(a) * 21,
+        0,
+        185 + Math.sin(a) * 21,
+        7.5 + (i % 3) * 1.1,
+        a
+      );
+    }
+
+    // Archipelago Island 2: Isla del Arrecife Dorado Groves (8 trees)
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      plantTree(
+        165 + Math.cos(a) * 15,
+        0,
+        110 + Math.sin(a) * 15,
+        6.8 + (i % 3) * 0.9,
+        a
+      );
+    }
+  }
+
+  // 6. South Imperial Harbor Docked 3D Galleons & Autonomous Ocean Fleet
+  if ((modelCache.has('SailShip') || modelCache.has('Sailboat')) && !populatedLandmarks.has('ImperialHarborFleet')) {
+    populatedLandmarks.add('ImperialHarborFleet');
+
+    // Flagship 3-Mast Galleon moored on the West side of the South Pier
+    const dockedGalleon = createImperialGalleonMesh(14.0);
+    dockedGalleon.position.set(-9.2, -0.25, 92);
+    dockedGalleon.rotation.y = 0.08;
+    worldGroup.add(dockedGalleon);
+
+    // Royal Escort Sailboat moored on the East side of the South Pier
+    if (modelCache.has('Sailboat')) {
+      const escort = normalizeAndGroundModel(modelCache.get('Sailboat').scene.clone(), 8.5, -0.35);
+      escort.position.set(8.2, -0.25, 88);
+      escort.rotation.y = -0.15;
+      worldGroup.add(escort);
+    }
+
+    // 4 Autonomous Sailing Ships cruising across the turquoise Ocean around Aethelgard
+    for (let i = 0; i < 4; i++) {
+      const fleetShip = createImperialGalleonMesh(13.2);
+      worldGroup.add(fleetShip);
+      animatedNavalFleet.push({
+        mesh: fleetShip,
+        angle: (i / 4) * Math.PI * 2 + 0.45,
+        radius: 118 + (i % 2) * 22,
+        speed: 0.055 + (i % 2) * 0.015
+      });
+    }
+  }
+
+  // 7. Golden Guardian Dragon Statues flanking the Central Altar (DragonAttenuation.glb)
+  if (modelCache.has('Dragon') && !populatedLandmarks.has('DragonGuardians')) {
+    populatedLandmarks.add('DragonGuardians');
+    const rawDragon = modelCache.get('Dragon').scene;
+
+    [-7.5, 7.5].forEach((dx) => {
+      const statueClone = rawDragon.clone();
+      statueClone.traverse((ch) => {
+        if ((ch.name || '').toLowerCase().includes('cloth') || (ch.name || '').toLowerCase().includes('backdrop')) {
+          ch.visible = false;
+        } else if (ch.isMesh) {
+          ch.castShadow = true;
+          ch.receiveShadow = true;
+          ch.material = ancientGoldMat;
+        }
+      });
+      const dragonStatue = normalizeAndGroundModel(statueClone, 4.4, 0.2);
+      dragonStatue.position.set(dx, 0, 5.5);
+      dragonStatue.rotation.y = dx < 0 ? 0.35 : -0.35;
+      worldGroup.add(dragonStatue);
+    });
+  }
 }
 
 // ============================================================================
@@ -1086,17 +1542,35 @@ function populateWorldAttractionsFromCache() {
 function createAtmosphericJetMesh() {
   const g = new THREE.Group();
 
-  // Sleek Swept-Delta Fighter Fuselage
-  const nose = new THREE.Mesh(new THREE.ConeGeometry(0.68, 3.8, 24), polishedMarbleMat);
-  nose.rotation.x = Math.PI / 2;
-  nose.position.set(0, 1.15, 2.1);
-  nose.castShadow = true;
-  g.add(nose);
+  if (modelCache.has('JetFighter')) {
+    const rawJet = modelCache.get('JetFighter').scene.clone();
+    rawJet.traverse((ch) => {
+      if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        ch.material = obsidianMat;
+      }
+    });
+    const normJet = normalizeAndGroundModel(rawJet, 8.2, 0.35);
+    g.add(normJet);
+  } else {
+    // Sleek Swept-Delta Fighter Fuselage
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.68, 3.8, 24), polishedMarbleMat);
+    nose.rotation.x = Math.PI / 2;
+    nose.position.set(0, 1.15, 2.1);
+    nose.castShadow = true;
+    g.add(nose);
 
-  const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.72, 4.2), obsidianMat);
-  body.position.set(0, 1.1, -0.8);
-  body.castShadow = true;
-  g.add(body);
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.72, 4.2), obsidianMat);
+    body.position.set(0, 1.1, -0.8);
+    body.castShadow = true;
+    g.add(body);
+
+    const mainWing = new THREE.Mesh(new THREE.BoxGeometry(7.2, 0.12, 2.1), polishedMarbleMat);
+    mainWing.position.set(0, 1.12, -0.75);
+    mainWing.castShadow = true;
+    g.add(mainWing);
+  }
 
   // Pilot Cockpit Seat Recess + Transparent Glass Canopy (So seated pilot is clearly visible inside!)
   const seatBack = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.85, 0.15), obsidianMat);
@@ -1108,25 +1582,11 @@ function createAtmosphericJetMesh() {
   canopy.position.set(0, 1.56, 0.35);
   g.add(canopy);
 
-  // Swept Delta Main Wings + Forward Canards + Gold Wingtip Rails
-  const mainWing = new THREE.Mesh(new THREE.BoxGeometry(7.2, 0.12, 2.1), polishedMarbleMat);
-  mainWing.position.set(0, 1.12, -0.75);
-  mainWing.castShadow = true;
-  g.add(mainWing);
-
   [-3.6, 3.6].forEach((wx) => {
     const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 2.6, 12), ancientGoldMat);
     rail.rotation.x = Math.PI / 2;
     rail.position.set(wx, 1.12, -0.6);
     g.add(rail);
-  });
-
-  // Twin Canted Vertical Stabilizers
-  [-1.05, 1.05].forEach((tx) => {
-    const fin = new THREE.Mesh(new THREE.BoxGeometry(0.14, 1.45, 1.4), ancientGoldMat);
-    fin.position.set(tx, 1.75, -2.25);
-    fin.rotation.z = tx > 0 ? -0.26 : 0.26;
-    g.add(fin);
   });
 
   // Twin Afterburner Nacelles
@@ -1289,6 +1749,19 @@ function applySeatedMountPose(clonedModel, mountType) {
         bone.rotation.x += 1.25;
       } else if (n.includes('LeftArm') || n.includes('RightArm')) {
         bone.rotation.x -= 0.85;
+      }
+    } else if (mountType === 'ship') {
+      // Naval Captain at the Quarterdeck Helm Wheel: wide sea-legs stance, hands gripping the ship's wheel
+      if (n.includes('LeftUpLeg')) {
+        bone.rotation.z -= 0.14;
+      } else if (n.includes('RightUpLeg')) {
+        bone.rotation.z += 0.14;
+      } else if (n.includes('LeftArm')) {
+        bone.rotation.x -= 0.78;
+        bone.rotation.z += 0.22;
+      } else if (n.includes('RightArm')) {
+        bone.rotation.x -= 0.78;
+        bone.rotation.z -= 0.22;
       }
     }
   });
@@ -1533,12 +2006,28 @@ function createAvatarInstance(
     // Commander seated inside the panoramic transparent command bridge!
     charHolder.scale.set(0.60, 0.60, 0.60);
     charHolder.position.set(0, 1.22, 0.48);
+  } else if (mountType === 'ship') {
+    const galleonMesh = createImperialGalleonMesh(12.2);
+    vehicleBankGroup.add(galleonMesh);
+
+    // Naval Captain standing proudly on the quarterdeck gripping the golden helm wheel!
+    charHolder.scale.set(0.66, 0.66, 0.66);
+    charHolder.position.set(0, 1.25, -1.82);
   }
 
   if (labelName) {
     const plusTag = gearLevel > 0 ? ` [+${gearLevel}]` : '';
     const nameSprite = createPlayerNameplate(`NV.${level} ${labelName}${plusTag}`);
-    const labelY = mountType === 'horse' ? 3.85 : (mountType === 'supercar' ? 2.45 : (mountType === 'starship' ? 3.6 : 3.45));
+    const labelY =
+      mountType === 'ship'
+        ? 5.8
+        : mountType === 'horse'
+          ? 3.85
+          : mountType === 'supercar'
+            ? 2.45
+            : mountType === 'starship'
+              ? 3.6
+              : 3.45;
     nameSprite.position.set(0, labelY, 0);
     root.add(nameSprite);
   }
@@ -1644,7 +2133,27 @@ function createMonsterMesh(mobData) {
   }
 
   let mixer = null;
-  if (gltf) {
+  if (mobData.md === 'DragonBoss' && modelCache.has('Dragon')) {
+    const rawDragon = modelCache.get('Dragon').scene.clone();
+    rawDragon.traverse((ch) => {
+      const nm = (ch.name || '').toLowerCase();
+      if (nm.includes('cloth') || nm.includes('backdrop')) {
+        ch.visible = false;
+      } else if (ch.isMesh) {
+        ch.castShadow = true;
+        ch.receiveShadow = true;
+        ch.material = new THREE.MeshStandardMaterial({
+          color: 0xd9381e,
+          emissive: 0x551100,
+          emissiveIntensity: 0.45,
+          roughness: 0.25,
+          metalness: 0.72
+        });
+      }
+    });
+    const dragonObj = normalizeAndGroundModel(rawDragon, 6.8, 0.15);
+    root.add(dragonObj);
+  } else if (gltf) {
     const cloned = SkeletonUtils.clone(gltf.scene);
     const baseScale = gltf === modelCache.get('Robot') ? 0.52 : 1.72;
     const rankMult = isBoss ? 1.85 : (isElite ? 1.25 : 1.0);
@@ -1813,7 +2322,7 @@ function rebuildLocalAvatar() {
 
 function requestMountEquipOrBuy(mType) {
   sfx.portal();
-  const prices = { horse: 0, supercar: 400, mythic_bird: 650, jet: 1200, starship: 2500 };
+  const prices = { horse: 0, ship: 0, supercar: 400, mythic_bird: 650, jet: 1200, starship: 2500 };
   if (!state.unlockedMounts.includes(mType)) {
     const cost = prices[mType] || 0;
     if (state.coins < cost) {
@@ -1828,6 +2337,15 @@ function requestMountEquipOrBuy(mType) {
     state.mountType = state.mountType === mType ? 'none' : mType;
   }
 
+  if (state.mountType === 'ship') {
+    // If equipping the Galleon inside the main island, launch directly from the South Imperial Harbor Pier!
+    if (Math.hypot(playerPos.x, playerPos.z) < 76 && playerPos.y < 25) {
+      playerPos.set(0, -0.25, 106);
+      playerYaw = 0; // Face South towards Dragon Island & Open Ocean
+    }
+    showToast('GALEÓN NAVAL IMPERIAL', 'Has zarpado al Océano. Navega hacia la Isla del Dragón (Sur) o el Arrecife Dorado (Este).');
+  }
+
   if (['mythic_bird', 'jet', 'starship'].includes(state.mountType)) {
     playerPos.y = Math.max(playerPos.y, getLocalGroundHeight(playerPos.x, playerPos.z) + 5);
   }
@@ -1838,10 +2356,20 @@ function requestMountEquipOrBuy(mType) {
   updateHUD();
 }
 
+function isOnEarthLandmass(x, z) {
+  if (Math.hypot(x, z) < 88) return true; // Main Citadel & Golden Beach
+  if (Math.abs(x) < 6 && z >= 65 && z <= 104) return true; // South Harbor Pier
+  if (Math.hypot(x, z - (-88)) < 26) return true; // North Spaceport Peninsula
+  if (Math.hypot(x, z - 185) < 34) return true; // Archipelago Island 1: Dragon Island
+  if (Math.hypot(x - 165, z - 110) < 27) return true; // Archipelago Island 2: Golden Reef
+  return false;
+}
+
 function getLocalGroundHeight(x, z) {
   if (Math.hypot(x - 0, z - (-680)) < 60) return 260;
   if (Math.hypot(x - (-620), z - (-1100)) < 70) return 340;
   if (Math.hypot(x - 680, z - (-1350)) < 74) return 440;
+  if (!isOnEarthLandmass(x, z)) return -0.25; // Ocean surface level
   return 0;
 }
 
@@ -1850,6 +2378,9 @@ function getCurrentPlanetLabel(x, y, z) {
   if (Math.hypot(x - (-620), z - (-1100)) < 125 && y > 220) return 'MARTE ARES PRIME';
   if (Math.hypot(x - 680, z - (-1350)) < 135 && y > 300) return 'ANILLO AURELIA';
   if (y > 135) return 'ESPACIO PROFUNDO';
+  if (Math.hypot(x, z - 185) < 42) return 'ISLA DEL DRAGÓN';
+  if (Math.hypot(x - 165, z - 110) < 35) return 'ARRECIFE DORADO';
+  if (!isOnEarthLandmass(x, z)) return 'OCÉANO IMPERIAL';
   return 'SANTUARIO SOLAR';
 }
 
@@ -1918,13 +2449,16 @@ function renderRadarMinimap() {
     }
   }
 
-  // Major Landmarks & Relic Sanctuaries
+  // Major Landmarks, Harbor & Archipelago Sanctuaries
   const landmarks = [
     { x: 0, z: 0, color: '#ffe2a6' },
     { x: -75, z: 0, color: '#ffb85c' },
     { x: 0, z: -45, color: '#4fe0a3' },
     { x: 75, z: 0, color: '#ff6b6b' },
-    { x: 0, z: -88, color: '#6ce5ff' }
+    { x: 0, z: -88, color: '#6ce5ff' },
+    { x: 0, z: 86, color: '#38d9a9' },
+    { x: 0, z: 185, color: '#ff4d4d' },
+    { x: 165, z: 110, color: '#ffd43b' }
   ];
   for (const lm of landmarks) {
     const [rx, rz] = toRadar(lm.x, lm.z);
@@ -2085,6 +2619,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Digit3') requestMountEquipOrBuy('mythic_bird');
   if (e.code === 'Digit4') requestMountEquipOrBuy('jet');
   if (e.code === 'Digit5') requestMountEquipOrBuy('starship');
+  if (e.code === 'Digit6') requestMountEquipOrBuy('ship');
 });
 
 window.addEventListener('keyup', (e) => {
@@ -2182,6 +2717,8 @@ document.getElementById('btn-mount-car').addEventListener('click', () => request
 document.getElementById('btn-mount-bird').addEventListener('click', () => requestMountEquipOrBuy('mythic_bird'));
 document.getElementById('btn-mount-jet').addEventListener('click', () => requestMountEquipOrBuy('jet'));
 document.getElementById('btn-mount-starship').addEventListener('click', () => requestMountEquipOrBuy('starship'));
+const btnMountShip = document.getElementById('btn-mount-ship');
+if (btnMountShip) btnMountShip.addEventListener('click', () => requestMountEquipOrBuy('ship'));
 document.getElementById('btn-soulshot').addEventListener('click', () => toggleSoulshots());
 
 function toggleSoulshots() {
@@ -2586,7 +3123,7 @@ function updateHUD() {
     document.getElementById('hud-shots-count').textContent = `${inv.soulshots || 0}⚡`;
   }
 
-  ['horse', 'supercar', 'mythic_bird', 'jet', 'starship'].forEach((m) => {
+  ['horse', 'ship', 'supercar', 'mythic_bird', 'jet', 'starship'].forEach((m) => {
     const el = document.getElementById(`price-${m}`);
     if (el && state.unlockedMounts.includes(m)) {
       el.textContent = state.mountType === m ? 'Equipado ✓' : 'Equipar ⟶';
@@ -2601,6 +3138,7 @@ function updateHUD() {
   const mountLabels = {
     none: 'INFANTERÍA',
     horse: 'CORCEL',
+    ship: 'GALEÓN NAVAL',
     supercar: 'SUPERCAR GT',
     mythic_bird: 'AVE SOLAR',
     jet: 'CAZA SUPERSÓNICO',
@@ -2613,6 +3151,9 @@ function updateHUD() {
   document.getElementById('btn-mount-bird').classList.toggle('active', state.mountType === 'mythic_bird');
   document.getElementById('btn-mount-jet').classList.toggle('active', state.mountType === 'jet');
   document.getElementById('btn-mount-starship').classList.toggle('active', state.mountType === 'starship');
+  if (document.getElementById('btn-mount-ship')) {
+    document.getElementById('btn-mount-ship').classList.toggle('active', state.mountType === 'ship');
+  }
 
   const lbBox = document.getElementById('leaderboard-box');
   if (lbBox) {
@@ -2959,6 +3500,27 @@ function animate() {
     if (b.mixer) b.mixer.update(dt);
   }
 
+  for (const s of animatedNavalFleet) {
+    s.angle += dt * s.speed;
+    s.mesh.position.set(
+      Math.cos(s.angle) * s.radius,
+      -0.25 + Math.sin(elapsed * 2.1 + s.angle * 3.0) * 0.16,
+      Math.sin(s.angle) * s.radius
+    );
+    s.mesh.rotation.y = -s.angle;
+    s.mesh.rotation.z = Math.sin(elapsed * 1.8 + s.angle) * 0.045;
+    s.mesh.rotation.x = Math.cos(elapsed * 1.6 + s.angle) * 0.035;
+  }
+
+  for (const beam of lighthouseBeams) {
+    beam.rotation.y += dt * 0.85;
+  }
+
+  if (aetherEmbers) {
+    aetherEmbers.rotation.y += dt * 0.02;
+    aetherEmbers.position.y = Math.sin(elapsed * 0.8) * 0.35;
+  }
+
   for (const r of animatedRelics) {
     if (r.mesh) {
       r.mesh.rotation.y += dt * 0.85;
@@ -3026,6 +3588,7 @@ function animate() {
 
     let baseSpeed = (keysPressed['ShiftLeft'] ? 15 : 10.5) * velocityMultiplier;
     if (state.mountType === 'horse') baseSpeed = 20.0 * velocityMultiplier;
+    if (state.mountType === 'ship') baseSpeed = 24.5 * velocityMultiplier;
     if (state.mountType === 'supercar') baseSpeed = 29.0 * velocityMultiplier;
     if (state.mountType === 'mythic_bird') baseSpeed = 26.0 * velocityMultiplier;
     if (state.mountType === 'jet') baseSpeed = 52.0 * velocityMultiplier;
@@ -3094,10 +3657,17 @@ function animate() {
       if (yawDelta > Math.PI) yawDelta -= Math.PI * 2;
       if (yawDelta < -Math.PI) yawDelta += Math.PI * 2;
 
-      const targetRoll = isFlyingMount ? THREE.MathUtils.clamp(-yawDelta * 4.5, -0.45, 0.45) : 0;
+      const isSailing = state.mountType === 'ship' || (!isFlyingMount && playerPos.y <= -0.15);
+      const targetRoll = isFlyingMount
+        ? THREE.MathUtils.clamp(-yawDelta * 4.5, -0.45, 0.45)
+        : isSailing
+          ? Math.sin(elapsed * 2.2) * 0.055 + THREE.MathUtils.clamp(-yawDelta * 1.8, -0.15, 0.15)
+          : 0;
       const targetPitch = isFlyingMount
         ? (ascendHeld ? -0.26 : (descendHeld ? 0.26 : 0))
-        : 0;
+        : isSailing
+          ? Math.cos(elapsed * 1.9) * 0.042
+          : 0;
 
       localAvatar.vehicleBankGroup.rotation.z = THREE.MathUtils.lerp(localAvatar.vehicleBankGroup.rotation.z, targetRoll, 0.15);
       localAvatar.vehicleBankGroup.rotation.x = THREE.MathUtils.lerp(localAvatar.vehicleBankGroup.rotation.x, targetPitch, 0.15);
@@ -3106,12 +3676,20 @@ function animate() {
     sky.visible = playerPos.y < 135;
     scene.fog.density = playerPos.y < 135 ? 0.0018 : 0.00012;
 
-    localAvatar.root.position.copy(playerPos);
+    const waveBobY = state.mountType === 'ship' ? Math.sin(elapsed * 2.3) * 0.16 : 0;
+    localAvatar.root.position.set(playerPos.x, playerPos.y + waveBobY, playerPos.z);
     localAvatar.root.rotation.y = playerYaw;
     updateAvatarAnimationAndPose(localAvatar, dt, currentAnim);
     if (localAvatar.mountMixer && len > 0.08) localAvatar.mountMixer.update(dt * 1.3);
 
-    const camDist = state.mountType === 'starship' ? 14.5 : (state.mountType === 'jet' ? 12.5 : 9.0);
+    const camDist =
+      state.mountType === 'ship'
+        ? 15.5
+        : state.mountType === 'starship'
+          ? 14.5
+          : state.mountType === 'jet'
+            ? 12.5
+            : 9.0;
     const targetCam = new THREE.Vector3(
       playerPos.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * camDist,
       playerPos.y + Math.sin(cameraPitch) * camDist + 2.0,

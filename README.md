@@ -1,27 +1,25 @@
-# 🪐 THE QUEST — Open-Source Interplanetary MMORPG (Level 1–100)
+# 🪐 THE QUEST — Open-Source Interplanetary & Maritime MMORPG (Level 1–100)
 
-**THE QUEST** es un MMORPG interplanetario fotorrealista multiplataforma (PC + Móvil Táctil) construido con **Three.js (PBR / HDRI / Draco / Post-Processing)** y un servidor autoritativo espacial (**WebSockets + Spatial Hash Grid AoI**) capaz de sincronizar **500+ jugadores concurrentes**.
+**THE QUEST** es un MMORPG interplanetario y marítimo fotorrealista multiplataforma (**PC + Móvil Táctil**) construido con **Three.js (PBR / HDRI / Draco / Post-Processing / Water Shader)** y un servidor autoritativo espacial (**WebSockets + 3D Spatial Hash Grid AoI**) capaz de sincronizar **500+ jugadores concurrentes**.
 
 ---
 
 ## ✨ Características Principales
 
-1. **Sistema Solar Continuo (Tierra, Luna, Marte y Planeta Anillado Aurelia):**
-   * Navega por la superficie de la **Tierra** (Santuario del Sol, Cañón del Horizonte, Catacumbas de Warkarma, Coliseo de Obsidiana y Ciudadela Flotante).
-   * Asciende por la estratosfera (`Altitud > 135m`) hasta cruzar al **Espacio Profundo** y aterrizar en **La Luna (Selene)**, **Marte (Ares Prime)** o los anillos de **Aurelia**.
-2. **Economía de Transporte y 5 Niveles de Locomoción:**
-   * Viaja gratis a pie o en tu **Corcel Imperial** (`🐎`).
-   * Compra con **Créditos de Éter (`✦`)** obtenidos jugando: **Supercar GT (`🏎️` 400 ✦)**, **Ave Mítica Solar (`🦅` 650 ✦)**, **Avión Caza Atmosférico (`✈️` 1,200 ✦)** o **Nave Espacial Interplanetaria (`🚀` 2,500 ✦)**.
-   * O paga peajes instantáneos en la **Red de Teletransporte Interplanetario (`🪐 Carta Estelar`)**.
-3. **Progresión RPG de Nivel 1 al 100 (Tope Estricto) y Códice de Habilidades (`🧬`):**
-   * Gana **XP** extrayendo cristales planetarios, superando carreras contrarreloj, resolviendo juicios del **Arconte IA** o derrotando rivales.
-   * Cada nivel (hasta el **Nivel 100**) otorga **+1 Punto de Habilidad** para invertir en:
-     * **Impulso Cinético:** +6% velocidad terrestre, aérea y espacial por rango.
-     * **Resonancia de Éter:** +15% rendimiento de minería/XP y daño de pulso por rango.
-     * **Coraza Inmortal:** +25 HP máximos por rango.
-     * **Navegación Astral:** Hasta 50% de descuento en peajes interplanetarios.
-4. **6 Linajes Humanos Fotorrealistas + Importador `.GLB`:**
-   * Elige en la galería 3D en vivo entre *Comandante Vanguard*, *Elena Verne*, *Espectro de Obsidiana*, *Kael Nomad*, *Guardián del Sol*, *Centinela Aegis*, o sube tu propio modelo `.glb`.
+1. **Océano Vivo, Puerto Naval Imperial, Islas del Archipiélago y Galeones 3D (`[6]`):**
+   * **Playas Doradas y Muelle de Madera Dura (`Puerto Sur`, `0, 0, +86`):** Con bolardos de amarre, **Faro Imperial de 22m** con haz de luz giratorio y flota de barcos navegando en tiempo real sobre el océano con física de oleaje.
+   * **6ª Montura Gratuita — Galeón Naval de 3 Mástiles (`⛵ [6]` / `Sail_ship.glb`):** El capitán va visible al timón en el alcázar de popa mientras surcas el mar hacia la **Isla del Dragón Abisal (`0, 0, +185`)** (hogar del *Raid Boss Marino Dragón Leviatán Nv.38*, modelo 3D `DragonAttenuation.glb`) y la **Isla del Arrecife Dorado (`+165, 0, +110`)**.
+2. **Paisajismo 3D Completo ("Cero Geometría en Bruto"):**
+   * Más de **56 árboles 3D reales (`tree.glb`)** en jardines imperiales, avenidas, costas y archipiélagos.
+   * **Espejos de Agua Turquesa**, **Estatuas Guardianas de Dragón en Oro Antiguo**, **Farolas Imperiales Cálidas** y **Partículas Flotantes de Éter**.
+3. **Sistema Solar Continuo con Geometría Planetaria Unificada (Sin Cortes):**
+   * Terrenos esféricos esculpidos de una sola pieza con cráteres naturales y halo atmosférico para **La Luna (Selene)**, **Marte (Ares Prime)** y el planeta anillado **Aurelia**.
+4. **Postura Biomecánica Sentada Real en Cabinas y Monturas (`[1]` a `[6]`):**
+   * Articulación esquelética en tiempo real de fémures, rodillas y brazos para que el personaje se vea **sentado** cabalgando en el **Corcel (`[1]`)**, al volante del **Ferrari GT (`[2]`)**, sobre el **Ave Solar (`[3]`)**, dentro de la cabina de cristal del **Caza Supersónico (`[4]`, `jet_fighter.glb`)**, en el puente del **Crucero Espacial (`[5]`)** o al timón del **Galeón Naval (`[6]`)**.
+5. **Fusión RPG Clásica (*Ragnarok Online* + *MU Online* + *Lineage II*):**
+   * **6 Atributos estilo *Ragnarok Online* (`[K]`):** `STR`, `AGI`, `VIT`, `INT`, `DEX`, `LUK` (+5 puntos por nivel hasta Nv.100).
+   * **Forja del Caos `+0` a `+15` y Alas 3D Evolucionadas estilo *MU Online* (`[F]`):** Mejora tu armadura con *Joyas de Bless, Soul y Chaos* (desbloqueando auras esmeralda, zafiro, violeta y oro solar) y sintetiza **Alas Solares (Nv.1)**, **Alas de Arcángel (Nv.2)** y **Alas de Serafín Imperial (Nv.3)**.
+   * **Soulshots (`[X]`), Spots de Monstruos, Raid Bosses 3D y Santuario Colectivo estilo *Lineage II*:** Activa sobrecarga de arma (`Daño x1.85`), caza monstruos y Dragones 3D en cada planeta/isla y dona al **Santuario Colectivo** para activar bonos globales de XP y Drop para todo el servidor.
 
 ---
 
@@ -41,5 +39,5 @@ npm start
 ## 🤝 Cómo Contribuir (Comunidad Open Source)
 
 1. Haz un **Fork** de este repositorio en GitHub.
-2. Crea una rama para tu nueva misión, planeta, vehículo o habilidad (`git checkout -b feature/nuevo-planeta`).
-3. Envía un **Pull Request (PR)**. El flujo de **GitHub Actions (`.github/workflows/deploy.yml`)** compilará y publicará automáticamente el cliente en **GitHub Pages** mientras tus 2 servidores privados alojan el motor multijugador en vivo.
+2. Crea una rama para tu nueva misión, planeta, barco o habilidad (`git checkout -b feature/nueva-isla`).
+3. Envía un **Pull Request (PR)**.

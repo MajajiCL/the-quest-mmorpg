@@ -233,6 +233,12 @@
           <span class="slot-label">CRUCERO</span>
         </button>
 
+        <button id="btn-mount-ship" class="mount-btn" title="Galeón Naval de 3 Mástiles (Gratis en Puerto Sur • Tecla 6)">
+          <span class="slot-key">6</span>
+          <svg viewBox="0 0 24 24"><path d="M2 18h20l-3 4H5l-3-4zM12 2v14M12 3l8 6-8 2M12 5L5 11l7 2"/></svg>
+          <span class="slot-label">GALEÓN</span>
+        </button>
+
         <button id="btn-soulshot" class="mount-btn active" title="Cargas de Éter / Soulshots (Multiplica Daño x1.85 • Tecla X)">
           <span class="slot-key">X</span>
           <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -283,10 +289,19 @@
         <div class="attr-card" data-transit="earth_sanctuary" data-fare="50">
           <div class="attr-badge">NV. 1-25</div>
           <div class="attr-info">
-            <h4>Planeta Tierra • Santuario de Aethelgard</h4>
-            <p>Spots de Centinelas y MVP Coloso de Aethelgard (Nv.25). Pista GT y Forja Central.</p>
+            <h4>Planeta Tierra • Santuario y Puerto Naval</h4>
+            <p>Spots de Centinelas, MVP Coloso (Nv.25), Puerto Marítimo Sur, Pista GT y Forja Central.</p>
           </div>
           <span class="attr-go">50 ✦ ⟶</span>
+        </div>
+
+        <div class="attr-card" data-transit="ocean_dragon_island" data-fare="150">
+          <div class="attr-badge">NV. 28-40</div>
+          <div class="attr-info">
+            <h4>Océano Sur • Isla del Dragón Leviatán</h4>
+            <p>Archipiélago tropical mar adentro. Navega en Galeón [6] o salta directo al Raid Boss Dragón (Nv.38).</p>
+          </div>
+          <span class="attr-go">150 ✦ ⟶</span>
         </div>
 
         <div class="attr-card" data-transit="moon_base" data-fare="350">
@@ -344,6 +359,15 @@
             <p>Tu personaje cabalga sentado con postura natural de jinete sobre el lomo.</p>
           </div>
           <span class="attr-go" id="price-horse">Adquirido</span>
+        </div>
+
+        <div class="attr-card" data-buy-mount="ship">
+          <div class="attr-badge">OCÉANO</div>
+          <div class="attr-info">
+            <h4>Galeón Naval Imperial (3 Mástiles • Tecla 6)</h4>
+            <p>Zarpa por el mar hacia las Islas Oceánicas con tu capitán al timón de popa.</p>
+          </div>
+          <span class="attr-go" id="price-ship">Adquirido</span>
         </div>
 
         <div class="attr-card" data-buy-mount="supercar">
