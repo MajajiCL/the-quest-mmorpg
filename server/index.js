@@ -1048,6 +1048,11 @@ wss.on('connection', (ws) => {
       }
 
       case 'reward_attraction': {
+        // Anti-exploit: the client could spam this message for unlimited coins/XP.
+        // Enforce a server-side cooldown per player (rewards are still client-reported; see roadmap Phase 1).
+        const nowTs = Date.now();
+        if (player.lastAttractionRewardAt && nowTs - player.lastAttractionRewardAt < 60000) break;
+        player.lastAttractionRewardAt = nowTs;
         const amount = Math.max(25, Math.min(800, Number(msg.amount) || 150));
         const xpGain = Math.max(50, Math.min(1000, Number(msg.xp) || 220));
         player.coins += amount;

@@ -3163,7 +3163,11 @@ function updateHUD() {
       row.className = `lb-item ${idx === 0 ? 'first' : ''}`;
       const relCount = (item.relics || []).filter(Boolean).length;
       const glTag = item.gearLevel ? ` +${item.gearLevel}` : '';
-      row.innerHTML = `<span>#${idx + 1} [NV.${item.level || 1}${glTag}] ${item.name}</span><span>❖ ${relCount}/3 • ${(item.score || 0).toLocaleString()}</span>`;
+      const left = document.createElement('span');
+      left.textContent = `#${idx + 1} [NV.${item.level || 1}${glTag}] ${item.name}`;
+      const right = document.createElement('span');
+      right.textContent = `❖ ${relCount}/3 • ${(item.score || 0).toLocaleString()}`;
+      row.append(left, right);
       lbBox.appendChild(row);
     });
   }
@@ -3181,8 +3185,13 @@ function showToast(title, desc) {
 
 function appendChat(author, text) {
   const box = document.getElementById('chat-messages');
+  // textContent (never innerHTML) so chat messages from other players cannot inject HTML/JS (XSS).
   const d = document.createElement('div');
-  d.innerHTML = `<b style="color:#ffe2a6">${author}:</b> ${text}`;
+  const b = document.createElement('b');
+  b.style.color = '#ffe2a6';
+  b.textContent = `${author}:`;
+  d.appendChild(b);
+  d.appendChild(document.createTextNode(` ${text}`));
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
 }
