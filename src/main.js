@@ -2993,7 +2993,7 @@ function checkInteractions() {
   // Check if close to an alive Monster or Raid Boss to show Attack Hint
   for (const [, mob] of monsterEntities) {
     if (playerPos.distanceTo(mob.targetPos) < 11.5) {
-      txt.textContent = `Atacar con Pulso de Éter [Q] (${state.soulshotsActive ? 'Soulshot x1.85 Activo' : 'Normal'})`;
+      txt.textContent = `Atacar con Pulso de Éter [Q] (${state.soulshotsActive ? 'Resonancia x1.85 Activa' : 'Normal'})`;
       btn.classList.remove('hidden');
       activeContextFn = () => triggerAetherStrike();
       return;
@@ -3017,7 +3017,7 @@ function checkInteractions() {
         if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'claim_ascension' }));
       };
     } else {
-      txt.textContent = 'Abrir Forja del Caos (+15, Alas & Alianza) [F]';
+      txt.textContent = 'Abrir Forja Primordial (+15, Alas & Alianza) [F]';
       btn.classList.remove('hidden');
       activeContextFn = () => {
         updateHUD();

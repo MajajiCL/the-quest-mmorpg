@@ -3,6 +3,7 @@ import http from 'http';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { WebSocketServer } from 'ws';
+import { storage } from './storage.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -112,11 +113,11 @@ const resourceNodes = new Map();
 const monsters = new Map();
 const globalLeaderboard = new Map();
 
-const societyState = {
+const societyState = storage.society || {
   level: 3,
   totalContribution: 6400,
   nextGoal: 10000,
-  activeBuff: '+15% XP Global & +10% Drop de Joyas'
+  activeBuff: '+15% XP Global & +10% Drop de Gemas'
 };
 
 // Seed Elite Level 1-100 Commanders onto the Global Ranking
@@ -340,6 +341,7 @@ function updateLeaderboardForPlayer(p) {
     score,
     updatedAt: Date.now()
   });
+  storage.savePlayer(p);
 }
 
 function getTopLeaderboard(limit = 10) {
@@ -703,7 +705,52 @@ wss.on('connection', (ws) => {
         if (typeof msg.avatar === 'string' && VALID_AVATARS.includes(msg.avatar)) {
           player.avatar = msg.avatar;
         }
+
+        // Restore persistent progression from database
+        const saved = storage.getOrCreatePlayer(player.name, player.avatar);
+        player.level = saved.level || 1;
+        player.xp = saved.xp || 0;
+        player.statPoints = saved.statPoints ?? 10;
+        player.skillPoints = saved.skillPoints ?? 1;
+        player.stats = saved.stats ? { ...saved.stats } : player.stats;
+        player.skills = saved.skills ? { ...saved.skills } : player.skills;
+        player.gearLevel = saved.gearLevel || 0;
+        player.wingsTier = saved.wingsTier || 0;
+        player.coins = saved.coins ?? 600;
+        player.relics = saved.relics ? [...saved.relics] : [false, false, false];
+        player.ascension = Boolean(saved.ascension);
+        player.inventory = saved.inventory ? { ...saved.inventory } : player.inventory;
+        player.unlockedMounts = Array.isArray(saved.unlockedMounts) ? [...saved.unlockedMounts] : ['none', 'horse', 'ship'];
+        player.mount = saved.mountType || 'none';
+
+        recalculateDerivedStats(player);
+        player.hp = player.maxHp;
         updateLeaderboardForPlayer(player);
+        storage.savePlayer(player);
+
+        // Send confirmed restored profile to client
+        ws.send(JSON.stringify({
+          t: 'aoi',
+          you: {
+            level: player.level,
+            xp: player.xp,
+            xpNext: xpRequiredForNextLevel(player.level),
+            statPoints: player.statPoints,
+            skillPoints: player.skillPoints,
+            stats: player.stats,
+            skills: player.skills,
+            gearLevel: player.gearLevel,
+            wingsTier: player.wingsTier,
+            coins: player.coins,
+            relics: player.relics,
+            ascension: player.ascension,
+            inventory: player.inventory,
+            unlockedMounts: player.unlockedMounts,
+            mountType: player.mount
+          },
+          leaderboard: getTopLeaderboard(10)
+        }));
+
         broadcastGlobalEvent({
           kind: 'PLAYER_JOINED',
           playerName: player.name,
@@ -870,23 +917,23 @@ wss.on('connection', (ws) => {
               ws.send(JSON.stringify({
                 t: 'forge_result',
                 ok: true,
-                title: `¡MÁQUINA DEL CAOS: +${player.gearLevel}!`,
-                desc: `¡Fusión perfecta! Has alcanzado el mítico brillo +${player.gearLevel}.`
+                title: `¡FORJA PRIMORDIAL: +${player.gearLevel}!`,
+                desc: `¡Fusión perfecta! Has alcanzado el aura radiante +${player.gearLevel}.`
               }));
             } else {
               ws.send(JSON.stringify({
                 t: 'forge_result',
                 ok: false,
-                title: 'FUSIÓN DEL CAOS FALLIDA',
-                desc: `Las joyas se consumieron pero el escudo protector mantuvo tu equipo en +${player.gearLevel}.`
+                title: 'FUSIÓN PRIMORDIAL FALLIDA',
+                desc: `Las gemas se consumieron pero el escudo de éter protegió tu equipo en +${player.gearLevel}.`
               }));
             }
           } else {
             ws.send(JSON.stringify({
               t: 'forge_result',
               ok: false,
-              title: 'MATERIALES INSUFICIENTES',
-              desc: 'Para subir de +9 a +15 necesitas 1 Caos + 1 Bendición + 1 Alma y equipo +9 o superior.'
+              title: 'GEMAS INSUFICIENTES',
+              desc: 'Para subir de +9 a +15 necesitas 1 Gema Primordial + 1 Gema Solar + 1 Gema Astral y equipo +9 o superior.'
             }));
           }
         } else if (mode === 'wings') {
@@ -944,9 +991,12 @@ wss.on('connection', (ws) => {
           }
           societyState.nextGoal = societyState.level * 2500;
           const xpBonusPct = 10 + societyState.level * 5;
-          societyState.activeBuff = `+${xpBonusPct}% XP Global & +${societyState.level * 5}% Botín de Joyas`;
+          societyState.activeBuff = `+${xpBonusPct}% XP Global & +${societyState.level * 5}% Botín de Gemas`;
+          storage.society = societyState;
+          storage.saveSociety();
           grantPlayerXP(player, 250);
           updateLeaderboardForPlayer(player);
+          storage.savePlayer(player);
           broadcastGlobalEvent({
             kind: 'SOCIETY_UPGRADED',
             playerName: player.name,

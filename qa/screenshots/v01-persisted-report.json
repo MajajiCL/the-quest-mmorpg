@@ -1,0 +1,12 @@
+[
+  {
+    "profile": "desktop",
+    "fpsSoftwareGL": 1,
+    "errors": []
+  },
+  {
+    "profile": "mobile",
+    "fpsSoftwareGL": 2,
+    "errors": []
+  }
+]

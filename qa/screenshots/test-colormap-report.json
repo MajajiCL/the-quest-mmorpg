@@ -1,0 +1,16 @@
+[
+  {
+    "profile": "desktop",
+    "fpsSoftwareGL": 1,
+    "errors": [
+      "click failed (#btn-start-world): page.click: Timeout 10000ms exceeded."
+    ]
+  },
+  {
+    "profile": "mobile",
+    "fpsSoftwareGL": 1,
+    "errors": [
+      "click failed (#btn-start-world): page.click: Timeout 10000ms exceeded."
+    ]
+  }
+]
