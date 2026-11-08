@@ -3,3 +3,6 @@ dist/
 .env
 *.log
 .DS_Store
+assets-incoming/
+qa/screenshots/*.png
+qa/screenshots/*.json

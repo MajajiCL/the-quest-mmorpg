@@ -10,6 +10,81 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 // ============================================================================
+// BASE URL & ASSET RESOLVER (SUPPORTS GITHUB PAGES SUBPATH HOSTING)
+// ============================================================================
+const BASE_URL = import.meta.env.BASE_URL || './';
+function toAsset(p) {
+  if (!p) return p;
+  if (p.startsWith('http://') || p.startsWith('https://') || p.startsWith('data:') || p.startsWith('blob:')) return p;
+  const clean = p.replace(/^\/+/, '');
+  const base = BASE_URL.endsWith('/') ? BASE_URL : `${BASE_URL}/`;
+  return `${base}${clean}`;
+}
+
+const SAVE_KEY = 'the_quest_mmorpg_save_v1';
+function saveLocalState() {
+  try {
+    const data = {
+      playerName: state.playerName,
+      avatarType: state.avatarType,
+      level: state.level,
+      xp: state.xp,
+      xpNext: state.xpNext,
+      skillPoints: state.skillPoints,
+      statPoints: state.statPoints,
+      stats: state.stats,
+      skills: state.skills,
+      gearLevel: state.gearLevel,
+      wingsTier: state.wingsTier,
+      soulshotsActive: state.soulshotsActive,
+      inventory: state.inventory,
+      unlockedMounts: state.unlockedMounts,
+      mountType: state.mountType,
+      coins: state.coins,
+      relics: state.relics,
+      ascension: state.ascension,
+      society: state.society
+    };
+    localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+  } catch {
+    // LocalStorage quota or disabled
+  }
+}
+
+function loadLocalState() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data && typeof data === 'object') {
+      if (data.playerName) state.playerName = data.playerName;
+      if (data.avatarType) state.avatarType = data.avatarType;
+      if (typeof data.level === 'number') state.level = data.level;
+      if (typeof data.xp === 'number') state.xp = data.xp;
+      if (typeof data.xpNext === 'number') state.xpNext = data.xpNext;
+      if (typeof data.skillPoints === 'number') state.skillPoints = data.skillPoints;
+      if (typeof data.statPoints === 'number') state.statPoints = data.statPoints;
+      if (data.stats) Object.assign(state.stats, data.stats);
+      if (data.skills) Object.assign(state.skills, data.skills);
+      if (typeof data.gearLevel === 'number') state.gearLevel = data.gearLevel;
+      if (typeof data.wingsTier === 'number') state.wingsTier = data.wingsTier;
+      if (typeof data.coins === 'number') state.coins = data.coins;
+      if (typeof data.soulshotsActive === 'boolean') state.soulshotsActive = data.soulshotsActive;
+      if (data.inventory) Object.assign(state.inventory, data.inventory);
+      if (Array.isArray(data.unlockedMounts)) state.unlockedMounts = data.unlockedMounts;
+      if (data.mountType) state.mountType = data.mountType;
+      if (Array.isArray(data.relics)) state.relics = data.relics;
+      if (typeof data.ascension === 'boolean') state.ascension = data.ascension;
+      if (data.society) Object.assign(state.society, data.society);
+      return true;
+    }
+  } catch {
+    // Ignore invalid JSON
+  }
+  return false;
+}
+
+// ============================================================================
 // THE QUEST // AAA INTERPLANETARY MMORPG ENGINE (RO + MU + LINEAGE II EDITION)
 // Features:
 // 1. Unified Seamless Planetary Terrains (No disconnected sphere-with-hat bug!)
@@ -249,14 +324,14 @@ scene.add(showcaseSpot);
 scene.add(showcaseSpot.target);
 
 const rgbeLoader = new RGBELoader();
-rgbeLoader.load('/textures/venice_sunset_1k.hdr', (hdrTexture) => {
+rgbeLoader.load(toAsset('textures/venice_sunset_1k.hdr'), (hdrTexture) => {
   hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = hdrTexture;
   scene.environmentIntensity = 0.95;
 });
 
 const texLoader = new THREE.TextureLoader();
-const waterNormals = texLoader.load('/textures/waternormals.jpg', (tex) => {
+const waterNormals = texLoader.load(toAsset('textures/waternormals.jpg'), (tex) => {
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
 });
 
@@ -344,24 +419,24 @@ function resolveHorizontalCollisions(pos, entityRadius = 0.85) {
 // ============================================================================
 // REAL PBR MATERIALS & SEAMLESS UNIFIED PLANETARY ARCHITECTURES
 // ============================================================================
-const brickDiffuse = texLoader.load('/textures/brick_diffuse.jpg');
-const brickRoughness = texLoader.load('/textures/brick_roughness.jpg');
-const brickBump = texLoader.load('/textures/brick_bump.jpg');
+const brickDiffuse = texLoader.load(toAsset('textures/brick_diffuse.jpg'));
+const brickRoughness = texLoader.load(toAsset('textures/brick_roughness.jpg'));
+const brickBump = texLoader.load(toAsset('textures/brick_bump.jpg'));
 [brickDiffuse, brickRoughness, brickBump].forEach((t) => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(36, 36);
 });
 brickDiffuse.colorSpace = THREE.SRGBColorSpace;
 
-const moonTex = texLoader.load('/textures/planets/moon_1024.jpg');
+const moonTex = texLoader.load(toAsset('textures/planets/moon_1024.jpg'));
 moonTex.wrapS = moonTex.wrapT = THREE.RepeatWrapping;
 moonTex.colorSpace = THREE.SRGBColorSpace;
 
-const earthTex = texLoader.load('/textures/planets/earth_atmos_2048.jpg');
+const earthTex = texLoader.load(toAsset('textures/planets/earth_atmos_2048.jpg'));
 earthTex.colorSpace = THREE.SRGBColorSpace;
 
-const earthNormalTex = texLoader.load('/textures/planets/earth_normal_2048.jpg');
-const earthCloudsTex = texLoader.load('/textures/planets/earth_clouds_1024.png');
+const earthNormalTex = texLoader.load(toAsset('textures/planets/earth_normal_2048.jpg'));
+const earthCloudsTex = texLoader.load(toAsset('textures/planets/earth_clouds_1024.png'));
 
 const stoneCourtyardMat = new THREE.MeshStandardMaterial({
   map: brickDiffuse,
@@ -438,9 +513,9 @@ const aureliaSurfaceMat = new THREE.MeshStandardMaterial({
   metalness: 0.28
 });
 
-const woodDiffuse = texLoader.load('/textures/hardwood2_diffuse.jpg');
-const woodRoughness = texLoader.load('/textures/hardwood2_roughness.jpg');
-const woodBump = texLoader.load('/textures/hardwood2_bump.jpg');
+const woodDiffuse = texLoader.load(toAsset('textures/hardwood2_diffuse.jpg'));
+const woodRoughness = texLoader.load(toAsset('textures/hardwood2_roughness.jpg'));
+const woodBump = texLoader.load(toAsset('textures/hardwood2_bump.jpg'));
 [woodDiffuse, woodRoughness, woodBump].forEach((t) => {
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.repeat.set(8, 8);
@@ -1192,7 +1267,7 @@ buildMasterPlannedUniverse();
 // DRACO + GLTF ASSET LOADER (PLAYERS, VEHICLES, MONSTERS & REACTORS)
 // ============================================================================
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath('/draco/');
+dracoLoader.setDecoderPath(toAsset('draco/'));
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
@@ -1263,19 +1338,19 @@ let coreModelsLoaded = false;
 async function preloadCoreModels() {
   if (coreModelsLoaded) return;
   const coreFiles = [
-    { key: 'Soldier', url: '/models/Soldier.glb' },
-    { key: 'Xbot', url: '/models/Xbot.glb' },
-    { key: 'Robot', url: '/models/RobotExpressive.glb' },
-    { key: 'Horse', url: '/models/Horse.glb' },
-    { key: 'Ferrari', url: '/models/ferrari.glb' },
-    { key: 'Stork', url: '/models/Stork.glb' },
-    { key: 'Flamingo', url: '/models/Flamingo.glb' },
-    { key: 'PrimaryIonDrive', url: '/models/PrimaryIonDrive.glb' },
-    { key: 'SailShip', url: '/models/Sail_ship.glb' },
-    { key: 'Sailboat', url: '/models/sailboat.glb' },
-    { key: 'JetFighter', url: '/models/jet_fighter.glb' },
-    { key: 'Tree', url: '/models/tree.glb' },
-    { key: 'Dragon', url: '/models/DragonAttenuation.glb' }
+    { key: 'Soldier', url: toAsset('models/Soldier.glb') },
+    { key: 'Xbot', url: toAsset('models/Xbot.glb') },
+    { key: 'Robot', url: toAsset('models/RobotExpressive.glb') },
+    { key: 'Horse', url: toAsset('models/Horse.glb') },
+    { key: 'Ferrari', url: toAsset('models/ferrari.glb') },
+    { key: 'Stork', url: toAsset('models/Stork.glb') },
+    { key: 'Flamingo', url: toAsset('models/Flamingo.glb') },
+    { key: 'PrimaryIonDrive', url: toAsset('models/PrimaryIonDrive.glb') },
+    { key: 'SailShip', url: toAsset('models/Sail_ship.glb') },
+    { key: 'Sailboat', url: toAsset('models/sailboat.glb') },
+    { key: 'JetFighter', url: toAsset('models/jet_fighter.glb') },
+    { key: 'Tree', url: toAsset('models/tree.glb') },
+    { key: 'Dragon', url: toAsset('models/DragonAttenuation.glb') }
   ];
 
   await Promise.all(
@@ -2352,6 +2427,7 @@ function requestMountEquipOrBuy(mType) {
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'buy_or_equip_mount', mount: mType }));
   }
+  saveLocalState();
   rebuildLocalAvatar();
   updateHUD();
 }
@@ -2545,6 +2621,12 @@ function rewardAttraction(attractionName, amount = 250, xp = 300) {
   sfx.levelUp();
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'reward_attraction', attractionName, amount, xp }));
+  } else {
+    state.coins += amount;
+    state.xp += xp;
+    checkOfflineLevelUp();
+    saveLocalState();
+    updateHUD();
   }
   showToast(attractionName.toUpperCase(), `Recompensa: +${amount} Créditos ✦ y +${xp} XP.`);
 }
@@ -2725,6 +2807,7 @@ function toggleSoulshots() {
   state.soulshotsActive = !state.soulshotsActive;
   sfx.playTone(state.soulshotsActive ? 680 : 320, 0.1, 'sine', 0.08);
   if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'toggle_soulshots' }));
+  else saveLocalState();
   updateHUD();
 }
 
@@ -2734,8 +2817,424 @@ function useVitalPotion() {
     return;
   }
   sfx.shard();
-  if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'use_potion' }));
+  if (ws && ws.readyState === 1) {
+    ws.send(JSON.stringify({ t: 'use_potion' }));
+  } else {
+    state.inventory.potions--;
+    state.hp = state.maxHp || 260;
+    saveLocalState();
+    updateHUD();
+  }
   spawnFloatingCombatText(playerPos, '+VIDA', false, '#4fe0a3');
+}
+
+// ============================================================================
+// SOVEREIGN AUTONOMOUS WEB ENGINE (ZERO-CONFIG CLIENT-SIDE MMORPG SIMULATION)
+// Enables full open-world exploration, combat, raid bosses, forge & progression
+// on static hosts like GitHub Pages with localStorage persistence!
+// ============================================================================
+let isSovereignOffline = false;
+const localMonsters = new Map();
+
+function initLocalMonsters() {
+  if (localMonsters.size > 0) return;
+  const spotDefs = [
+    // Earth Perimeter Hunting Spots (Level 4 - 15)
+    { id: 'mob_e1', name: 'Centinela Corrupto', level: 4, rank: 'normal', model: 'Robot', homeX: -38, homeY: 0, homeZ: -38, patrolR: 6, maxHp: 260, atk: 12, xp: 140, coins: 95 },
+    { id: 'mob_e2', name: 'Centinela Corrupto', level: 5, rank: 'normal', model: 'Robot', homeX: -44, homeY: 0, homeZ: -32, patrolR: 6, maxHp: 290, atk: 14, xp: 160, coins: 110 },
+    { id: 'mob_e3', name: 'Merodeador de Obsidiana', level: 8, rank: 'normal', model: 'Robot', homeX: 40, homeY: 0, homeZ: -38, patrolR: 7, maxHp: 380, atk: 18, xp: 210, coins: 145 },
+    { id: 'mob_e4', name: 'Merodeador de Obsidiana', level: 9, rank: 'normal', model: 'Robot', homeX: 46, homeY: 0, homeZ: -30, patrolR: 7, maxHp: 420, atk: 20, xp: 230, coins: 160 },
+    { id: 'mob_e5', name: 'Acechador del Horizonte', level: 12, rank: 'elite', model: 'XbotMob', homeX: -58, homeY: 0, homeZ: 22, patrolR: 8, maxHp: 620, atk: 26, xp: 340, coins: 240 },
+    { id: 'mob_e6', name: 'Gladiador Sombra', level: 15, rank: 'elite', model: 'XbotMob', homeX: 58, homeY: 0, homeZ: 22, patrolR: 8, maxHp: 750, atk: 30, xp: 410, coins: 290 },
+    // Earth MVP Coloso
+    { id: 'boss_earth', name: '👑 MVP: COLOSO DE AETHELGARD', level: 25, rank: 'boss', model: 'BossRobot', homeX: 62, homeY: 0, homeZ: -18, patrolR: 5, maxHp: 2400, atk: 45, xp: 1250, coins: 950 },
+    // Ocean Archipelago & Dragon Boss
+    { id: 'mob_sea1', name: 'Corsario del Abismo', level: 28, rank: 'elite', model: 'XbotMob', homeX: -12, homeY: 0, homeZ: 175, patrolR: 7, maxHp: 920, atk: 35, xp: 540, coins: 380 },
+    { id: 'mob_sea2', name: 'Guardián del Arrecife Dorado', level: 30, rank: 'elite', model: 'Robot', homeX: 165, homeY: 0, homeZ: 110, patrolR: 7, maxHp: 980, atk: 38, xp: 590, coins: 420 },
+    { id: 'boss_ocean', name: '👑 RAID BOSS: DRAGÓN LEVIATÁN', level: 38, rank: 'boss', model: 'DragonBoss', homeX: 0, homeY: 0, homeZ: 192, patrolR: 6, maxHp: 3400, atk: 56, xp: 1850, coins: 1450 },
+    // Moon Selene
+    { id: 'mob_m1', name: 'Espectro Lunar de Helio', level: 32, rank: 'elite', model: 'Robot', homeX: -18, homeY: 260, homeZ: -668, patrolR: 7, maxHp: 1100, atk: 42, xp: 680, coins: 460 },
+    { id: 'boss_moon', name: '👑 RAID BOSS: ARCONTE DE SELENE', level: 48, rank: 'boss', model: 'BossRobot', homeX: 0, homeY: 260, homeZ: -708, patrolR: 5, maxHp: 4200, atk: 68, xp: 2400, coins: 1800 },
+    // Mars Ares Prime
+    { id: 'mob_ma1', name: 'Gólem Kyber de Ares', level: 58, rank: 'elite', model: 'XbotMob', homeX: -600, homeY: 340, homeZ: -1085, patrolR: 8, maxHp: 2100, atk: 65, xp: 1200, coins: 820 },
+    { id: 'boss_mars', name: '👑 RAID BOSS: IGNIS DE ARES PRIME', level: 75, rank: 'boss', model: 'BossRobot', homeX: -620, homeY: 340, homeZ: -1128, patrolR: 6, maxHp: 6800, atk: 95, xp: 4200, coins: 3200 },
+    // Aurelia Orbital Ring
+    { id: 'mob_au1', name: 'Serafín del Vacío', level: 84, rank: 'elite', model: 'XbotMob', homeX: 660, homeY: 440, homeZ: -1335, patrolR: 8, maxHp: 3400, atk: 90, xp: 2100, coins: 1400 },
+    { id: 'boss_aurelia', name: '👑 EMPERADOR DRAGÓN DE AURELIA', level: 99, rank: 'boss', model: 'DragonBoss', homeX: 680, homeY: 440, homeZ: -1375, patrolR: 6, maxHp: 11000, atk: 130, xp: 7500, coins: 6000 }
+  ];
+
+  for (const def of spotDefs) {
+    localMonsters.set(def.id, {
+      ...def,
+      x: def.homeX,
+      y: def.homeY,
+      z: def.homeZ,
+      ry: 0,
+      hp: def.maxHp,
+      mhp: def.maxHp,
+      state: 'patrol',
+      phase: Math.random() * Math.PI * 2,
+      respawnAt: 0
+    });
+  }
+}
+
+function initLocalOrbs() {
+  if (orbMeshes.size > 0) return;
+  const orbs = [];
+  let oid = 1;
+  // Earth Orbs
+  for (let i = 0; i < 28; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const r = 18 + Math.random() * 65;
+    orbs.push({ id: `orb_e_${oid++}`, x: Math.cos(angle) * r, y: 1.1, z: Math.sin(angle) * r, planet: 'earth' });
+  }
+  // Ocean Dragon Island Orbs
+  for (let i = 0; i < 10; i++) {
+    orbs.push({ id: `orb_o_${oid++}`, x: (Math.random() - 0.5) * 45, y: 1.2, z: 185 + (Math.random() - 0.5) * 45, planet: 'ocean' });
+  }
+  // Moon Orbs
+  for (let i = 0; i < 14; i++) {
+    orbs.push({ id: `orb_m_${oid++}`, x: (Math.random() - 0.5) * 70, y: 261.2, z: -680 + (Math.random() - 0.5) * 70, planet: 'moon' });
+  }
+  // Mars Orbs
+  for (let i = 0; i < 16; i++) {
+    orbs.push({ id: `orb_ma_${oid++}`, x: -620 + (Math.random() - 0.5) * 85, y: 341.2, z: -1100 + (Math.random() - 0.5) * 85, planet: 'mars' });
+  }
+  // Aurelia Orbs
+  for (let i = 0; i < 10; i++) {
+    orbs.push({ id: `orb_au_${oid++}`, x: 680 + (Math.random() - 0.5) * 80, y: 441.2, z: -1350 + (Math.random() - 0.5) * 80, planet: 'aurelia' });
+  }
+  syncWorldOrbs(orbs);
+}
+
+function updateLocalMonsters(dt) {
+  const list = [];
+  const now = performance.now();
+  for (const m of localMonsters.values()) {
+    if (m.state === 'dead') {
+      if (now >= m.respawnAt) {
+        m.state = 'patrol';
+        m.hp = m.maxHp;
+      } else {
+        continue;
+      }
+    }
+    m.phase = (m.phase || 0) + dt * 0.45;
+    m.x = m.homeX + Math.cos(m.phase) * m.patrolR;
+    m.z = m.homeZ + Math.sin(m.phase) * m.patrolR;
+    m.ry = m.phase + Math.PI / 2;
+
+    const dx = m.x - playerPos.x;
+    const dy = m.y - playerPos.y;
+    const dz = m.z - playerPos.z;
+    if (dx * dx + dy * dy + dz * dz <= 220 * 220) {
+      list.push({
+        id: m.id,
+        n: m.name,
+        lv: m.level,
+        rk: m.rank,
+        md: m.model,
+        x: Math.round(m.x * 10) / 10,
+        y: Math.round(m.y * 10) / 10,
+        z: Math.round(m.z * 10) / 10,
+        ry: Math.round(m.ry * 100) / 100,
+        hp: m.hp,
+        mhp: m.maxHp
+      });
+    }
+  }
+  reconcileMonsters(list);
+}
+
+function handleOfflineAetherStrike() {
+  let closestMob = null;
+  let closestDist = 12.0;
+
+  for (const m of localMonsters.values()) {
+    if (m.state === 'dead') continue;
+    const dx = m.x - playerPos.x;
+    const dy = m.y - playerPos.y;
+    const dz = m.z - playerPos.z;
+    const d = Math.sqrt(dx * dx + dy * dy + dz * dz);
+    if (d < closestDist) {
+      closestDist = d;
+      closestMob = m;
+    }
+  }
+
+  if (!closestMob) return;
+
+  const baseDmg = (state.stats.str || 5) * 4 + (state.gearLevel || 0) * 14 + (state.level || 1) * 3;
+  const usingShot = state.soulshotsActive && (state.inventory?.soulshots || 0) > 0;
+  if (usingShot) state.inventory.soulshots--;
+
+  const critRate = (state.stats.luk || 5) * 0.02 + 0.08;
+  const isCrit = Math.random() < critRate;
+  const dmg = Math.round(baseDmg * (usingShot ? 1.95 : 1.0) * (isCrit ? 1.85 : (0.9 + Math.random() * 0.2)));
+
+  closestMob.hp = Math.max(0, closestMob.hp - dmg);
+  const hitPos = new THREE.Vector3(closestMob.x, closestMob.y + 1.8, closestMob.z);
+  spawnFloatingCombatText(hitPos, isCrit ? `CRIT -${dmg}!` : `-${dmg}`, isCrit, usingShot ? '#6ce5ff' : '#ffe2a6');
+
+  if (closestMob.hp <= 0) {
+    closestMob.state = 'dead';
+    closestMob.respawnAt = performance.now() + 12000;
+    sfx.levelUp();
+    state.xp += closestMob.xp;
+    state.coins += closestMob.coins;
+
+    // Drops
+    state.inventory.soulshots = (state.inventory.soulshots || 0) + 40;
+    state.inventory.potions = (state.inventory.potions || 0) + 1;
+    if (closestMob.rank === 'boss' || Math.random() < 0.35) state.inventory.bless = (state.inventory.bless || 0) + 1;
+    if (closestMob.rank === 'boss' || Math.random() < 0.20) state.inventory.soul = (state.inventory.soul || 0) + 1;
+    if (closestMob.rank === 'boss' || Math.random() < 0.10) state.inventory.chaos = (state.inventory.chaos || 0) + 1;
+
+    showToast(closestMob.rank === 'boss' ? '¡JEFE SUPREMO DERROTADO!' : 'ENEMIGO VENCIDO', `+${closestMob.xp} XP | +${closestMob.coins} ✦`);
+    checkOfflineLevelUp();
+    saveLocalState();
+  }
+  updateHUD();
+}
+
+function checkOfflineLevelUp() {
+  while (state.xp >= state.xpNext && state.level < 100) {
+    state.xp -= state.xpNext;
+    state.level++;
+    state.xpNext = Math.round(state.xpNext * 1.38 + 75);
+    state.statPoints = (state.statPoints || 0) + 5;
+    state.skillPoints = (state.skillPoints || 0) + 1;
+    state.maxHp = 260 + state.level * 25 + (state.stats.vit || 5) * 15;
+    state.hp = state.maxHp;
+    sfx.levelUp();
+    rebuildLocalAvatar();
+    showToast(`¡ASCENSO AL NIVEL ${state.level}!`, '+5 Puntos de Atributo y +1 de Códice [K].');
+  }
+  updateHUD();
+  saveLocalState();
+}
+
+function handleOfflineForgeUpgrade(mode) {
+  if (mode === 'gear') {
+    if ((state.gearLevel || 0) >= 15) {
+      showToast('NIVEL MÁXIMO', 'Tu armadura y armas ya poseen el fulgor legendario +15.');
+      return;
+    }
+    const inv = state.inventory;
+    if (state.gearLevel < 6) {
+      if ((inv.bless || 0) < 1) {
+        showToast('FORJA PRIMORDIAL', 'Necesitas Joya de la Bendición (Drop de monstruos).');
+        return;
+      }
+      inv.bless--;
+      state.gearLevel++;
+      sfx.levelUp();
+      showToast('¡FORJA EXITOSA!', `Equipo ascendido a +${state.gearLevel}. Fulgor intensificado.`);
+    } else if (state.gearLevel < 9) {
+      if ((inv.soul || 0) < 1) {
+        showToast('FORJA PRIMORDIAL', 'Necesitas Joya del Alma (Drop de monstruos élite).');
+        return;
+      }
+      inv.soul--;
+      if (Math.random() < 0.75) {
+        state.gearLevel++;
+        sfx.levelUp();
+        showToast('¡FORJA EXITOSA!', `Equipo ascendido a +${state.gearLevel}.`);
+      } else {
+        state.gearLevel = Math.max(6, state.gearLevel - 1);
+        sfx.strike();
+        showToast('FALLO EN LA FORJA', `Inestabilidad de éter: el equipo descendió a +${state.gearLevel}.`);
+      }
+    } else {
+      if ((inv.soul || 0) < 1 || (inv.chaos || 0) < 1) {
+        showToast('FORJA PRIMORDIAL', 'Para forja +10 a +15 necesitas Joya del Alma y Joya del Caos.');
+        return;
+      }
+      inv.soul--;
+      inv.chaos--;
+      if (Math.random() < 0.50) {
+        state.gearLevel++;
+        sfx.levelUp();
+        showToast('¡ASCENSIÓN LEGENDARIA!', `¡Equipo forjado a +${state.gearLevel}! Aura resplandeciente.`);
+      } else {
+        state.gearLevel = Math.max(0, state.gearLevel - 2);
+        sfx.strike();
+        showToast('COLAPSO EN LA FORJA', `El reactor colapsó: el equipo descendió a +${state.gearLevel}.`);
+      }
+    }
+    rebuildLocalAvatar();
+    updateHUD();
+    saveLocalState();
+  } else if (mode === 'wings') {
+    const currentTier = state.wingsTier || 0;
+    if (currentTier >= 3) {
+      showToast('ALAS SUPREMAS', 'Posees las Alas de Serafín Grado III (Máximo Nivel).');
+      return;
+    }
+    const inv = state.inventory;
+    if (currentTier === 0) {
+      if (state.level < 15) {
+        showToast('NIVEL INSUFICIENTE', 'Requieres Nivel 15 para despertar las Alas Solares.');
+        return;
+      }
+      if ((inv.chaos || 0) < 1) {
+        showToast('FORJA CAÓTICA', 'Necesitas 1 Joya del Caos para evolucionar tus alas.');
+        return;
+      }
+      inv.chaos--;
+      state.wingsTier = 1;
+      sfx.levelUp();
+      showToast('¡ALAS DESPERTADAS!', 'Has desbloqueado las Alas Solares Grado I.');
+    } else if (currentTier === 1) {
+      if (state.level < 40) {
+        showToast('NIVEL INSUFICIENTE', 'Requieres Nivel 40 para Alas de Arcángel.');
+        return;
+      }
+      if ((inv.chaos || 0) < 2 || (inv.soul || 0) < 2) {
+        showToast('FORJA CAÓTICA', 'Necesitas 2 Joyas del Caos y 2 Joyas del Alma.');
+        return;
+      }
+      inv.chaos -= 2;
+      inv.soul -= 2;
+      state.wingsTier = 2;
+      sfx.levelUp();
+      showToast('¡ALAS DE ARCÁNGEL!', 'Has evolucionado a Alas de Arcángel Grado II.');
+    } else if (currentTier === 2) {
+      if (state.level < 75) {
+        showToast('NIVEL INSUFICIENTE', 'Requieres Nivel 75 para Alas de Serafín.');
+        return;
+      }
+      if ((inv.chaos || 0) < 3 || (inv.soul || 0) < 3 || (inv.bless || 0) < 3) {
+        showToast('FORJA CAÓTICA', 'Necesitas 3 Joyas del Caos, 3 del Alma y 3 de Bendición.');
+        return;
+      }
+      inv.chaos -= 3;
+      inv.soul -= 3;
+      inv.bless -= 3;
+      state.wingsTier = 3;
+      sfx.levelUp();
+      showToast('¡ALAS SUPREMAS DE SERAFÍN!', '¡Has alcanzado las majestuosas Alas Grado III!');
+    }
+    rebuildLocalAvatar();
+    updateHUD();
+    saveLocalState();
+  }
+}
+
+function handleOfflineTransit(destination) {
+  const FARES = {
+    earth_sanctuary: 50,
+    ocean_dragon_island: 150,
+    moon_base: 350,
+    mars_colony: 600,
+    aurelia_ring: 950
+  };
+  const fare = FARES[destination] || 50;
+  if (state.coins < fare) {
+    showToast('PEAJE RECHAZADO', `Necesitas ${fare} ✦ para el salto cuántico.`);
+    return;
+  }
+  state.coins -= fare;
+  const dest = PLANETARY_DESTINATIONS[destination];
+  if (dest) {
+    sfx.portal();
+    playerPos.copy(dest.pos);
+    playerVel.set(0, 0, 0);
+    showToast('TRÁNSITO CUÁNTICO COMPLETADO', `Destino: ${dest.name} (-${fare} ✦).`);
+  }
+  updateHUD();
+  saveLocalState();
+}
+
+function handleOfflineBuySupplies(item) {
+  const inv = state.inventory;
+  if (item === 'soulshots') {
+    if (state.coins < 150) {
+      showToast('CRÉDITOS INSUFICIENTES', 'Necesitas 150 ✦ para adquirir 120 Cargas de Resonancia.');
+      return;
+    }
+    state.coins -= 150;
+    inv.soulshots = (inv.soulshots || 0) + 120;
+    sfx.shard();
+    showToast('SUMINISTRO ADQUIRIDO', '+120 Cargas de Resonancia (-150 ✦).');
+  } else if (item === 'potions') {
+    if (state.coins < 80) {
+      showToast('CRÉDITOS INSUFICIENTES', 'Necesitas 80 ✦ para adquirir 10 Pociones Vitales.');
+      return;
+    }
+    state.coins -= 80;
+    inv.potions = (inv.potions || 0) + 10;
+    sfx.shard();
+    showToast('SUMINISTRO ADQUIRIDO', '+10 Pociones Vitales (-80 ✦).');
+  }
+  updateHUD();
+  saveLocalState();
+}
+
+function handleOfflineDonateSociety() {
+  if (state.coins < 300) {
+    showToast('CRÉDITOS INSUFICIENTES', 'Necesitas 300 ✦ para donar al Santuario Colectivo.');
+    return;
+  }
+  state.coins -= 300;
+  state.society.totalContribution = (state.society.totalContribution || 0) + 300;
+  sfx.levelUp();
+  showToast('SANTUARIO COLECTIVO', '¡Donación registrada! +300 al Fondo de Alianza (-300 ✦).');
+  updateHUD();
+  saveLocalState();
+}
+
+function handleOfflineClaimRelic(relicIndex) {
+  if (state.relics[relicIndex]) return;
+  state.relics[relicIndex] = true;
+  state.coins += 1200;
+  state.xp += 800;
+  state.inventory.bless = (state.inventory.bless || 0) + 2;
+  sfx.levelUp();
+  showToast('¡RELIQUIA CONQUISTADA!', '+1,200 ✦, +800 XP y +2 Joyas de la Bendición.');
+  checkOfflineLevelUp();
+  updateHUD();
+  saveLocalState();
+}
+
+function handleOfflineAscension() {
+  state.ascension = true;
+  state.gearLevel = 15;
+  state.wingsTier = 3;
+  state.coins += 50000;
+  state.statPoints = (state.statPoints || 0) + 30;
+  sfx.levelUp();
+  rebuildLocalAvatar();
+  showToast('¡ASCENSIÓN PRIMORDIAL COMPLETADA!', '¡Has alcanzado el estado supremo! Equipo +15, Alas Grado III y +50,000 ✦.');
+  updateHUD();
+  saveLocalState();
+}
+
+function handleOfflineOrbPickups() {
+  for (const [orbId, item] of orbMeshes.entries()) {
+    const dx = item.data.x - playerPos.x;
+    const dy = item.data.y - playerPos.y;
+    const dz = item.data.z - playerPos.z;
+    if (dx * dx + dy * dy + dz * dz < 81) {
+      removeClientOrb(orbId);
+      sfx.shard();
+      state.xp += 65;
+      state.coins += 50;
+      checkOfflineLevelUp();
+      saveLocalState();
+    }
+  }
+}
+
+function activateSovereignOfflineMode() {
+  if (isSovereignOffline) return;
+  isSovereignOffline = true;
+  initLocalMonsters();
+  initLocalOrbs();
+  loadLocalState();
+  updateHUD();
+  console.log('[THE QUEST] Modo Soberano Autónomo Activo. Progreso guardado en almacenamiento local.');
 }
 
 // ============================================================================
@@ -2744,73 +3243,96 @@ function useVitalPotion() {
 let ws = null;
 
 function connectWebSocket() {
+  const params = new URLSearchParams(window.location.search);
+  const serverParam = params.get('server');
+
+  // If deployed to GitHub Pages and no explicit server is requested, activate Sovereign Web Mode directly
+  if (!serverParam && (window.location.hostname.endsWith('github.io') || window.location.protocol === 'file:')) {
+    activateSovereignOfflineMode();
+    return;
+  }
+
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
+  const targetUrl = serverParam || `${protocol}//${window.location.host}/ws`;
 
-  ws.addEventListener('open', () => {
-    if (state.joined) {
-      ws.send(JSON.stringify({
-        t: 'join',
-        name: state.playerName,
-        avatar: state.avatarType
-      }));
-    }
-  });
+  try {
+    ws = new WebSocket(targetUrl);
 
-  ws.addEventListener('message', (event) => {
-    let packet;
-    try {
-      packet = JSON.parse(event.data);
-    } catch {
-      return;
-    }
+    ws.addEventListener('open', () => {
+      isSovereignOffline = false;
+      if (state.joined) {
+        ws.send(JSON.stringify({
+          t: 'join',
+          name: state.playerName,
+          avatar: state.avatarType
+        }));
+      }
+    });
 
-    if (packet.t === 'welcome') {
-      state.playerId = packet.id;
-      if (packet.self) Object.assign(state, packet.self);
-      if (packet.society) state.society = packet.society;
-      state.leaderboard = packet.leaderboard || [];
-      state.onlineCount = packet.totalOnline || 1;
-      syncWorldOrbs(packet.orbs || []);
-      updateHUD();
-    } else if (packet.t === 'aoi') {
-      if (packet.you) {
-        const prevGear = state.gearLevel;
-        const prevWings = state.wingsTier;
-        const prevLvl = state.level;
-        Object.assign(state, packet.you);
-        if (state.gearLevel !== prevGear || state.wingsTier !== prevWings || state.level !== prevLvl) {
-          rebuildLocalAvatar();
+    ws.addEventListener('message', (event) => {
+      let packet;
+      try {
+        packet = JSON.parse(event.data);
+      } catch {
+        return;
+      }
+
+      if (packet.t === 'welcome') {
+        state.playerId = packet.id;
+        if (packet.self) Object.assign(state, packet.self);
+        if (packet.society) state.society = packet.society;
+        state.leaderboard = packet.leaderboard || [];
+        state.onlineCount = packet.totalOnline || 1;
+        syncWorldOrbs(packet.orbs || []);
+        updateHUD();
+      } else if (packet.t === 'aoi') {
+        if (packet.you) {
+          const prevGear = state.gearLevel;
+          const prevWings = state.wingsTier;
+          const prevLvl = state.level;
+          Object.assign(state, packet.you);
+          if (state.gearLevel !== prevGear || state.wingsTier !== prevWings || state.level !== prevLvl) {
+            rebuildLocalAvatar();
+          }
         }
+        if (packet.society) state.society = packet.society;
+        state.onlineCount = packet.online || state.onlineCount;
+        state.nearbyCount = (packet.nearby || []).length;
+        reconcileNearbyPlayers(packet.nearby || []);
+        reconcileMonsters(packet.mobs || []);
+        updateHUD();
+      } else if (packet.t === 'forge_result') {
+        if (packet.ok) sfx.levelUp();
+        else sfx.strike();
+        showToast(packet.title, packet.desc);
+        updateHUD();
+      } else if (packet.t === 'transit_approved') {
+        const dest = PLANETARY_DESTINATIONS[packet.destination];
+        if (dest) {
+          sfx.portal();
+          playerPos.copy(dest.pos);
+          playerVel.set(0, 0, 0);
+          showToast('TRÁNSITO CUÁNTICO COMPLETADO', `Destino: ${dest.name} (-${packet.farePaid} ✦).`);
+        }
+        updateHUD();
+      } else if (packet.t === 'transit_denied') {
+        showToast('PEAJE RECHAZADO', packet.reason);
+      } else if (packet.t === 'event') {
+        handleServerEvent(packet);
       }
-      if (packet.society) state.society = packet.society;
-      state.onlineCount = packet.online || state.onlineCount;
-      state.nearbyCount = (packet.nearby || []).length;
-      reconcileNearbyPlayers(packet.nearby || []);
-      reconcileMonsters(packet.mobs || []);
-      updateHUD();
-    } else if (packet.t === 'forge_result') {
-      if (packet.ok) sfx.levelUp();
-      else sfx.strike();
-      showToast(packet.title, packet.desc);
-      updateHUD();
-    } else if (packet.t === 'transit_approved') {
-      const dest = PLANETARY_DESTINATIONS[packet.destination];
-      if (dest) {
-        sfx.portal();
-        playerPos.copy(dest.pos);
-        playerVel.set(0, 0, 0);
-        showToast('TRÁNSITO CUÁNTICO COMPLETADO', `Destino: ${dest.name} (-${packet.farePaid} ✦).`);
-      }
-      updateHUD();
-    } else if (packet.t === 'transit_denied') {
-      showToast('PEAJE RECHAZADO', packet.reason);
-    } else if (packet.t === 'event') {
-      handleServerEvent(packet);
-    }
-  });
+    });
 
-  ws.addEventListener('close', () => setTimeout(connectWebSocket, 2500));
+    ws.addEventListener('error', () => {
+      activateSovereignOfflineMode();
+    });
+
+    ws.addEventListener('close', () => {
+      activateSovereignOfflineMode();
+      setTimeout(connectWebSocket, 4000);
+    });
+  } catch {
+    activateSovereignOfflineMode();
+  }
 }
 
 function reconcileNearbyPlayers(nearbyArray) {
@@ -2969,6 +3491,8 @@ function triggerAetherStrike() {
   spawnShockwave(playerPos.clone().add(new THREE.Vector3(0, 0.7, 0)), usingShot ? 0x6ce5ff : 0xffcf70);
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'aether_strike' }));
+  } else {
+    handleOfflineAetherStrike();
   }
 }
 
@@ -2977,6 +3501,8 @@ function claimRelic(relicIndex) {
   state.relics[relicIndex] = true;
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'claim_relic', relicIndex }));
+  } else {
+    handleOfflineClaimRelic(relicIndex);
   }
   updateHUD();
 }
@@ -3015,6 +3541,7 @@ function checkInteractions() {
       btn.classList.remove('hidden');
       activeContextFn = () => {
         if (ws && ws.readyState === 1) ws.send(JSON.stringify({ t: 'claim_ascension' }));
+        else handleOfflineAscension();
       };
     } else {
       txt.textContent = 'Abrir Forja Primordial (+15, Alas & Alianza) [F]';
@@ -3031,16 +3558,19 @@ function checkInteractions() {
 }
 
 function checkOrbPickups() {
-  if (!ws || ws.readyState !== 1) return;
-  for (const [orbId, item] of orbMeshes.entries()) {
-    const dx = item.data.x - playerPos.x;
-    const dy = item.data.y - playerPos.y;
-    const dz = item.data.z - playerPos.z;
-    if (dx * dx + dy * dy + dz * dz < 81) {
-      removeClientOrb(orbId);
-      sfx.shard();
-      ws.send(JSON.stringify({ t: 'pickup_orb', orbId }));
+  if (ws && ws.readyState === 1) {
+    for (const [orbId, item] of orbMeshes.entries()) {
+      const dx = item.data.x - playerPos.x;
+      const dy = item.data.y - playerPos.y;
+      const dz = item.data.z - playerPos.z;
+      if (dx * dx + dy * dy + dz * dz < 81) {
+        removeClientOrb(orbId);
+        sfx.shard();
+        ws.send(JSON.stringify({ t: 'pickup_orb', orbId }));
+      }
     }
+  } else {
+    handleOfflineOrbPickups();
   }
 }
 
@@ -3212,6 +3742,8 @@ document.querySelectorAll('.attr-card[data-transit]').forEach((card) => {
     const dest = card.dataset.transit;
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ t: 'pay_transit', destination: dest }));
+    } else {
+      handleOfflineTransit(dest);
     }
   });
 });
@@ -3265,6 +3797,7 @@ document.querySelectorAll('.attr-card[data-stat]').forEach((card) => {
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ t: 'allocate_stat', stat }));
     }
+    saveLocalState();
     updateHUD();
   });
 });
@@ -3282,6 +3815,7 @@ document.querySelectorAll('.attr-card[data-upgrade]').forEach((card) => {
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ t: 'upgrade_skill', skill }));
     }
+    saveLocalState();
     updateHUD();
   });
 });
@@ -3301,6 +3835,8 @@ document.querySelectorAll('.attr-card[data-forge]').forEach((card) => {
     const mode = card.dataset.forge;
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ t: 'forge_upgrade', mode }));
+    } else {
+      handleOfflineForgeUpgrade(mode);
     }
   });
 });
@@ -3311,6 +3847,8 @@ document.querySelectorAll('.attr-card[data-supply]').forEach((card) => {
     sfx.shard();
     if (ws && ws.readyState === 1) {
       ws.send(JSON.stringify({ t: 'buy_supplies', item }));
+    } else {
+      handleOfflineBuySupplies(item);
     }
   });
 });
@@ -3322,6 +3860,8 @@ document.getElementById('btn-donate-society').addEventListener('click', () => {
   }
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'donate_society' }));
+  } else {
+    handleOfflineDonateSociety();
   }
 });
 
@@ -3476,7 +4016,10 @@ document.getElementById('btn-start-world').addEventListener('click', async () =>
       name: state.playerName,
       avatar: state.avatarType === 'CustomUpload' ? 'Vanguard' : state.avatarType
     }));
+  } else {
+    activateSovereignOfflineMode();
   }
+  saveLocalState();
   updateHUD();
 });
 
@@ -3743,6 +4286,10 @@ function animate() {
     if (rem.avatarObj.mountMixer) rem.avatarObj.mountMixer.update(dt);
   }
 
+  if (!ws || ws.readyState !== 1) {
+    updateLocalMonsters(dt);
+  }
+
   for (const [, mob] of monsterEntities) {
     mob.root.position.lerp(mob.targetPos, 0.15);
     mob.root.rotation.y = mob.targetRy;
@@ -3758,6 +4305,12 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
 });
+
+loadLocalState();
+const inpExpl = document.getElementById('explorer-name-input');
+if (inpExpl && state.playerName) {
+  inpExpl.value = state.playerName;
+}
 
 preloadCoreModels().then(() => {
   rebuildLocalAvatar();
