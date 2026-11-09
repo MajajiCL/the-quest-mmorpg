@@ -8,6 +8,11 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+import { buildDetailedWorldArchitectures, updateWorldArchitectureAnimations } from './worldArchitecture.js';
+import { BossTelegraphSystem, BOSS_TELEGRAPH_CONFIGS } from './combat/BossTelegraphSystem.js';
+import { CombatFeedbackSystem } from './combat/CombatFeedbackSystem.js';
+import { ProCameraController } from './camera/ProCameraController.js';
+import { OrbitalFlightFX } from './effects/OrbitalFlightFX.js';
 
 // ============================================================================
 // BASE URL & ASSET RESOLVER (SUPPORTS GITHUB PAGES SUBPATH HOSTING)
@@ -35,7 +40,10 @@ function saveLocalState() {
       stats: state.stats,
       skills: state.skills,
       gearLevel: state.gearLevel,
+      durability: state.durability,
       wingsTier: state.wingsTier,
+      bountyIndex: state.bountyIndex,
+      bountyProgress: state.bountyProgress,
       soulshotsActive: state.soulshotsActive,
       inventory: state.inventory,
       unlockedMounts: state.unlockedMounts,
@@ -67,7 +75,10 @@ function loadLocalState() {
       if (data.stats) Object.assign(state.stats, data.stats);
       if (data.skills) Object.assign(state.skills, data.skills);
       if (typeof data.gearLevel === 'number') state.gearLevel = data.gearLevel;
+      if (typeof data.durability === 'number') state.durability = data.durability;
       if (typeof data.wingsTier === 'number') state.wingsTier = data.wingsTier;
+      if (typeof data.bountyIndex === 'number') state.bountyIndex = data.bountyIndex;
+      if (typeof data.bountyProgress === 'number') state.bountyProgress = data.bountyProgress;
       if (typeof data.coins === 'number') state.coins = data.coins;
       if (typeof data.soulshotsActive === 'boolean') state.soulshotsActive = data.soulshotsActive;
       if (data.inventory) Object.assign(state.inventory, data.inventory);
@@ -119,7 +130,10 @@ const state = {
     cosmicMastery: 0
   },
   gearLevel: 0,
+  durability: 100,
   wingsTier: 0,
+  bountyIndex: 0,
+  bountyProgress: 0,
   soulshotsActive: true,
   inventory: {
     bless: 3,
@@ -190,17 +204,263 @@ const WEATHER_PRESETS = [
   { name: 'Noche Astral', elevation: -5, azimuth: 200, fogColor: 0x060b16, exposure: 0.76, lightIntensity: 1.2 }
 ];
 
-// Subtle Web Audio Synthesizer
+// ============================================================================
+// PROCEDURAL WEB AUDIO SYNTHESIZER & REAL-TIME AMBIANCE ENGINE
+// ============================================================================
 class SoundFX {
   constructor() {
     this.ctx = null;
+    this.master = null;
+    this.limiter = null;
+    this.ambianceStarted = false;
+
+    // Ocean Waves Procedural Channel
+    this.oceanGain = null;
+    this.oceanFilter = null;
+    this.oceanLfo = null;
+    this.curOceanVol = 0;
+
+    // Stellar Cosmic Wind & Drone Procedural Channel
+    this.spaceGain = null;
+    this.spaceFilter = null;
+    this.spaceDrone1 = null;
+    this.spaceDrone2 = null;
+    this.curSpaceVol = 0;
+
+    // Ship Propulsion / Thruster Procedural Channel
+    this.propulsionGain = null;
+    this.propulsionFilter = null;
+    this.propulsionOsc = null;
+    this.propulsionSub = null;
+    this.curPropVol = 0;
   }
+
   init() {
     if (!this.ctx) {
       const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) this.ctx = new AudioCtx();
+      if (!AudioCtx) return;
+      this.ctx = new AudioCtx();
+
+      // Dynamics Compressor Limiter to prevent clipping
+      this.limiter = this.ctx.createDynamicsCompressor();
+      this.limiter.threshold.setValueAtTime(-4, this.ctx.currentTime);
+      this.limiter.knee.setValueAtTime(8, this.ctx.currentTime);
+      this.limiter.ratio.setValueAtTime(12, this.ctx.currentTime);
+      this.limiter.attack.setValueAtTime(0.003, this.ctx.currentTime);
+      this.limiter.release.setValueAtTime(0.25, this.ctx.currentTime);
+
+      this.master = this.ctx.createGain();
+      this.master.gain.setValueAtTime(0.85, this.ctx.currentTime);
+
+      this.master.connect(this.limiter);
+      this.limiter.connect(this.ctx.destination);
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
     }
   }
+
+  createNoiseBuffer(seconds = 3, type = 'pink') {
+    if (!this.ctx) return null;
+    const sampleRate = this.ctx.sampleRate;
+    const frameCount = Math.floor(sampleRate * seconds);
+    const buffer = this.ctx.createBuffer(1, frameCount, sampleRate);
+    const data = buffer.getChannelData(0);
+
+    if (type === 'pink') {
+      // Paul Kellet's filtered pink noise algorithm for warm, organic acoustic spectrum
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < frameCount; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+        b6 = white * 0.115926;
+      }
+    } else {
+      for (let i = 0; i < frameCount; i++) {
+        data[i] = (Math.random() * 2 - 1) * 0.18;
+      }
+    }
+    return buffer;
+  }
+
+  initAmbiance() {
+    this.init();
+    if (!this.ctx || this.ambianceStarted) return;
+    try {
+      this.ambianceStarted = true;
+      const now = this.ctx.currentTime;
+
+      // 1. Procedural Ocean Waves (Filtered pink noise with slow rhythmic swell LFO)
+      const oceanBuffer = this.createNoiseBuffer(4, 'pink');
+      if (oceanBuffer) {
+        const oceanSrc = this.ctx.createBufferSource();
+        oceanSrc.buffer = oceanBuffer;
+        oceanSrc.loop = true;
+
+        this.oceanFilter = this.ctx.createBiquadFilter();
+        this.oceanFilter.type = 'lowpass';
+        this.oceanFilter.frequency.setValueAtTime(300, now);
+        this.oceanFilter.Q.setValueAtTime(1.8, now);
+
+        // Slow swell LFO (~0.13Hz cycle = ~7.7s natural wave period)
+        this.oceanLfo = this.ctx.createOscillator();
+        this.oceanLfo.type = 'sine';
+        this.oceanLfo.frequency.setValueAtTime(0.13, now);
+
+        const oceanLfoGain = this.ctx.createGain();
+        oceanLfoGain.gain.setValueAtTime(220, now);
+        this.oceanLfo.connect(oceanLfoGain);
+        oceanLfoGain.connect(this.oceanFilter.frequency);
+
+        this.oceanGain = this.ctx.createGain();
+        this.oceanGain.gain.setValueAtTime(0, now);
+
+        oceanSrc.connect(this.oceanFilter);
+        this.oceanFilter.connect(this.oceanGain);
+        this.oceanGain.connect(this.master);
+
+        oceanSrc.start(now);
+        this.oceanLfo.start(now);
+      }
+
+      // 2. Procedural Stellar Cosmic Wind & Deep Space Drone
+      const spaceBuffer = this.createNoiseBuffer(4, 'pink');
+      if (spaceBuffer) {
+        const spaceSrc = this.ctx.createBufferSource();
+        spaceSrc.buffer = spaceBuffer;
+        spaceSrc.loop = true;
+
+        this.spaceFilter = this.ctx.createBiquadFilter();
+        this.spaceFilter.type = 'bandpass';
+        this.spaceFilter.frequency.setValueAtTime(750, now);
+        this.spaceFilter.Q.setValueAtTime(3.2, now);
+
+        // Twin detuned sine oscillators for binaural cosmic void vibration
+        this.spaceDrone1 = this.ctx.createOscillator();
+        this.spaceDrone1.type = 'sine';
+        this.spaceDrone1.frequency.setValueAtTime(55.0, now);
+
+        this.spaceDrone2 = this.ctx.createOscillator();
+        this.spaceDrone2.type = 'sine';
+        this.spaceDrone2.frequency.setValueAtTime(55.45, now);
+
+        const droneGain = this.ctx.createGain();
+        droneGain.gain.setValueAtTime(0.045, now);
+        this.spaceDrone1.connect(droneGain);
+        this.spaceDrone2.connect(droneGain);
+
+        this.spaceGain = this.ctx.createGain();
+        this.spaceGain.gain.setValueAtTime(0, now);
+
+        spaceSrc.connect(this.spaceFilter);
+        this.spaceFilter.connect(this.spaceGain);
+        droneGain.connect(this.spaceGain);
+        this.spaceGain.connect(this.master);
+
+        spaceSrc.start(now);
+        this.spaceDrone1.start(now);
+        this.spaceDrone2.start(now);
+      }
+
+      // 3. Procedural Ship Propulsion & Thruster Engine
+      const propNoise = this.createNoiseBuffer(3, 'pink');
+      if (propNoise) {
+        const propNoiseSrc = this.ctx.createBufferSource();
+        propNoiseSrc.buffer = propNoise;
+        propNoiseSrc.loop = true;
+
+        this.propulsionOsc = this.ctx.createOscillator();
+        this.propulsionOsc.type = 'triangle';
+        this.propulsionOsc.frequency.setValueAtTime(220, now);
+
+        this.propulsionSub = this.ctx.createOscillator();
+        this.propulsionSub.type = 'sawtooth';
+        this.propulsionSub.frequency.setValueAtTime(56, now);
+
+        this.propulsionFilter = this.ctx.createBiquadFilter();
+        this.propulsionFilter.type = 'lowpass';
+        this.propulsionFilter.frequency.setValueAtTime(550, now);
+        this.propulsionFilter.Q.setValueAtTime(2.2, now);
+
+        this.propulsionGain = this.ctx.createGain();
+        this.propulsionGain.gain.setValueAtTime(0, now);
+
+        this.propulsionOsc.connect(this.propulsionFilter);
+        this.propulsionSub.connect(this.propulsionFilter);
+        propNoiseSrc.connect(this.propulsionFilter);
+        this.propulsionFilter.connect(this.propulsionGain);
+        this.propulsionGain.connect(this.master);
+
+        propNoiseSrc.start(now);
+        this.propulsionOsc.start(now);
+        this.propulsionSub.start(now);
+      }
+    } catch {}
+  }
+
+  updateAmbiance({ playerPos, mountType, isMoving, speed = 10, isFlyingMount = false, dt = 0.016 }) {
+    if (!this.ctx || !this.ambianceStarted) return;
+    try {
+      const now = this.ctx.currentTime;
+      const py = playerPos.y;
+      const pz = playerPos.z;
+      const px = playerPos.x;
+
+      // --- OCEAN PROXIMITY CALCULATION ---
+      let targetOceanVol = 0;
+      if (mountType === 'ship') {
+        targetOceanVol = 0.22;
+      } else if (py <= 12) {
+        if (pz > 70) {
+          targetOceanVol = Math.min(0.20, 0.08 + (pz - 70) * 0.001);
+        } else if (px * px + pz * pz > 4200) {
+          targetOceanVol = 0.12;
+        }
+      }
+      if (py > 25) targetOceanVol = 0;
+
+      // --- STELLAR / DEEP SPACE PROXIMITY ---
+      let targetSpaceVol = 0;
+      if (py > 65) {
+        targetSpaceVol = Math.min(0.22, (py - 65) / 220 * 0.22);
+      }
+      if (this.spaceFilter && targetSpaceVol > 0) {
+        const centerFreq = Math.min(1800, 700 + py * 1.8);
+        this.spaceFilter.frequency.setTargetAtTime(centerFreq, now, 0.3);
+      }
+
+      // --- SHIP THRUSTER / JET PROPULSION ENGINE ---
+      let targetPropVol = 0;
+      if (mountType === 'jet' || mountType === 'starship') {
+        const isShipAccelerating = isMoving;
+        if (mountType === 'jet') {
+          targetPropVol = isShipAccelerating ? 0.20 : 0.035;
+          const jetFreq = isShipAccelerating ? Math.min(1100, 480 + speed * 9.5) : 320;
+          if (this.propulsionOsc) this.propulsionOsc.frequency.setTargetAtTime(jetFreq, now, 0.15);
+          if (this.propulsionSub) this.propulsionSub.frequency.setTargetAtTime(isShipAccelerating ? 72 : 46, now, 0.15);
+          if (this.propulsionFilter) this.propulsionFilter.frequency.setTargetAtTime(isShipAccelerating ? 2400 : 750, now, 0.15);
+        } else {
+          targetPropVol = isShipAccelerating ? 0.24 : 0.04;
+          const warpFreq = isShipAccelerating ? Math.min(320, 120 + speed * 1.8) : 85;
+          if (this.propulsionOsc) this.propulsionOsc.frequency.setTargetAtTime(warpFreq, now, 0.2);
+          if (this.propulsionSub) this.propulsionSub.frequency.setTargetAtTime(isShipAccelerating ? 54 : 38, now, 0.2);
+          if (this.propulsionFilter) this.propulsionFilter.frequency.setTargetAtTime(isShipAccelerating ? 1600 : 600, now, 0.2);
+        }
+      }
+
+      // Smooth gain transitions
+      if (this.oceanGain) this.oceanGain.gain.setTargetAtTime(targetOceanVol, now, 0.4);
+      if (this.spaceGain) this.spaceGain.gain.setTargetAtTime(targetSpaceVol, now, 0.5);
+      if (this.propulsionGain) this.propulsionGain.gain.setTargetAtTime(targetPropVol, now, 0.25);
+    } catch {}
+  }
+
   playTone(freq = 440, duration = 0.16, type = 'sine', gainVal = 0.08) {
     try {
       this.init();
@@ -212,27 +472,294 @@ class SoundFX {
       gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.master || this.ctx.destination);
       osc.start();
       osc.stop(this.ctx.currentTime + duration);
     } catch {}
   }
+
   shard() {
-    this.playTone(784, 0.09, 'sine', 0.09);
-    setTimeout(() => this.playTone(1174.6, 0.18, 'sine', 0.09), 70);
+    this.playTone(784, 0.09, 'sine', 0.11);
+    setTimeout(() => this.playTone(1174.6, 0.18, 'sine', 0.10), 65);
+    setTimeout(() => this.playTone(1568, 0.22, 'triangle', 0.08), 120);
   }
+
   portal() {
-    this.playTone(293.6, 0.2, 'triangle', 0.1);
-    setTimeout(() => this.playTone(587.3, 0.3, 'sine', 0.1), 85);
+    this.playTone(293.6, 0.22, 'triangle', 0.12);
+    setTimeout(() => this.playTone(587.3, 0.32, 'sine', 0.11), 80);
+    setTimeout(() => this.playTone(880, 0.40, 'sine', 0.08), 160);
   }
-  strike() {
-    this.playTone(165, 0.22, 'sawtooth', 0.11);
-    setTimeout(() => this.playTone(240, 0.20, 'triangle', 0.10), 45);
+
+  // Crisp, dynamic blade woosh + crystalline resonant pulse
+  strike({ isCrit = false, usingSoulshot = false } = {}) {
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+
+      // 1. Blade swoosh noise burst (high-speed air slicing)
+      const noiseBuffer = this.createNoiseBuffer(0.14, 'pink');
+      if (noiseBuffer) {
+        const swooshSrc = this.ctx.createBufferSource();
+        swooshSrc.buffer = noiseBuffer;
+
+        const swooshFilter = this.ctx.createBiquadFilter();
+        swooshFilter.type = 'bandpass';
+        swooshFilter.frequency.setValueAtTime(1800, now);
+        swooshFilter.frequency.exponentialRampToValueAtTime(320, now + 0.11);
+        swooshFilter.Q.setValueAtTime(3.2, now);
+
+        const swooshGain = this.ctx.createGain();
+        swooshGain.gain.setValueAtTime(0.18, now);
+        swooshGain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+
+        swooshSrc.connect(swooshFilter);
+        swooshFilter.connect(swooshGain);
+        swooshGain.connect(this.master || this.ctx.destination);
+        swooshSrc.start(now);
+        swooshSrc.stop(now + 0.12);
+      }
+
+      // 2. Harmonic blade chime (steel/crystal cutting edge)
+      const bladeOsc = this.ctx.createOscillator();
+      bladeOsc.type = 'sawtooth';
+      bladeOsc.frequency.setValueAtTime(680, now);
+      bladeOsc.frequency.exponentialRampToValueAtTime(180, now + 0.14);
+
+      const bladeFilter = this.ctx.createBiquadFilter();
+      bladeFilter.type = 'lowpass';
+      bladeFilter.frequency.setValueAtTime(1600, now);
+      bladeFilter.frequency.exponentialRampToValueAtTime(240, now + 0.14);
+
+      const bladeGain = this.ctx.createGain();
+      bladeGain.gain.setValueAtTime(0.12, now);
+      bladeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+      bladeOsc.connect(bladeFilter);
+      bladeFilter.connect(bladeGain);
+      bladeGain.connect(this.master || this.ctx.destination);
+      bladeOsc.start(now);
+      bladeOsc.stop(now + 0.15);
+
+      // 3. Soulshot Overdrive Plasma burst
+      if (usingSoulshot) {
+        const etherOsc = this.ctx.createOscillator();
+        etherOsc.type = 'sine';
+        etherOsc.frequency.setValueAtTime(1400, now);
+        etherOsc.frequency.exponentialRampToValueAtTime(420, now + 0.18);
+
+        const etherGain = this.ctx.createGain();
+        etherGain.gain.setValueAtTime(0.20, now);
+        etherGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+        etherOsc.connect(etherGain);
+        etherGain.connect(this.master || this.ctx.destination);
+        etherOsc.start(now);
+        etherOsc.stop(now + 0.19);
+      }
+
+      // 4. Critical strike impact
+      if (isCrit) {
+        const critBell = this.ctx.createOscillator();
+        critBell.type = 'sine';
+        critBell.frequency.setValueAtTime(1760, now);
+        critBell.frequency.exponentialRampToValueAtTime(880, now + 0.28);
+
+        const critGain = this.ctx.createGain();
+        critGain.gain.setValueAtTime(0.16, now);
+        critGain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+
+        critBell.connect(critGain);
+        critGain.connect(this.master || this.ctx.destination);
+        critBell.start(now);
+        critBell.stop(now + 0.29);
+      }
+    } catch {}
   }
+
+  // Synthesized primal roar for Leviathan Dragon and Bosses
+  bossRoar({ isDragon = true } = {}) {
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const duration = isDragon ? 1.6 : 1.3;
+
+      // 1. Low Guttural Throat Rumble (Sawtooth + 26Hz Tremolo LFO for visceral snarling vocal cords)
+      const throatOsc = this.ctx.createOscillator();
+      throatOsc.type = 'sawtooth';
+      throatOsc.frequency.setValueAtTime(isDragon ? 110 : 85, now);
+      throatOsc.frequency.exponentialRampToValueAtTime(isDragon ? 42 : 36, now + duration);
+
+      const lfo = this.ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(26, now);
+
+      const lfoGain = this.ctx.createGain();
+      lfoGain.gain.setValueAtTime(0.4, now);
+
+      const throatGain = this.ctx.createGain();
+      throatGain.gain.setValueAtTime(0.22, now);
+      throatGain.gain.linearRampToValueAtTime(0.32, now + 0.2);
+      throatGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+      lfo.connect(lfoGain);
+      lfoGain.connect(throatGain.gain);
+
+      // Formant Acoustic Filter (Simulates open maw cavernous acoustics)
+      const throatFilter = this.ctx.createBiquadFilter();
+      throatFilter.type = 'peaking';
+      throatFilter.frequency.setValueAtTime(isDragon ? 480 : 380, now);
+      throatFilter.frequency.linearRampToValueAtTime(isDragon ? 1200 : 850, now + 0.45);
+      throatFilter.frequency.exponentialRampToValueAtTime(220, now + duration);
+      throatFilter.Q.setValueAtTime(5.2, now);
+      throatFilter.gain.setValueAtTime(14, now);
+
+      throatOsc.connect(throatFilter);
+      throatFilter.connect(throatGain);
+      throatGain.connect(this.master || this.ctx.destination);
+
+      throatOsc.start(now);
+      lfo.start(now);
+      throatOsc.stop(now + duration);
+      lfo.stop(now + duration);
+
+      // 2. Abyssal Breath / Dragon Fire Hiss (Filtered noise blast)
+      const noiseBuf = this.createNoiseBuffer(duration, 'pink');
+      if (noiseBuf) {
+        const breathSrc = this.ctx.createBufferSource();
+        breathSrc.buffer = noiseBuf;
+
+        const breathFilter = this.ctx.createBiquadFilter();
+        breathFilter.type = 'bandpass';
+        breathFilter.frequency.setValueAtTime(isDragon ? 750 : 550, now);
+        breathFilter.frequency.linearRampToValueAtTime(isDragon ? 1400 : 900, now + 0.4);
+        breathFilter.frequency.exponentialRampToValueAtTime(350, now + duration);
+        breathFilter.Q.setValueAtTime(2.2, now);
+
+        const breathGain = this.ctx.createGain();
+        breathGain.gain.setValueAtTime(0.01, now);
+        breathGain.gain.linearRampToValueAtTime(0.18, now + 0.25);
+        breathGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+        breathSrc.connect(breathFilter);
+        breathFilter.connect(breathGain);
+        breathGain.connect(this.master || this.ctx.destination);
+
+        breathSrc.start(now);
+        breathSrc.stop(now + duration);
+      }
+
+      // 3. Sub-bass seismic boom
+      const subOsc = this.ctx.createOscillator();
+      subOsc.type = 'sine';
+      subOsc.frequency.setValueAtTime(65, now);
+      subOsc.frequency.exponentialRampToValueAtTime(28, now + duration * 0.85);
+
+      const subGain = this.ctx.createGain();
+      subGain.gain.setValueAtTime(0.24, now);
+      subGain.gain.exponentialRampToValueAtTime(0.001, now + duration * 0.85);
+
+      subOsc.connect(subGain);
+      subGain.connect(this.master || this.ctx.destination);
+      subOsc.start(now);
+      subOsc.stop(now + duration * 0.86);
+    } catch {}
+  }
+
+  // Triumphant Victory Fanfare for Level Ups and Quest Completions
+  victoryFanfare() {
+    try {
+      this.init();
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const notes = [
+        { f: 523.25, t: 0.00, d: 0.18 }, // C5
+        { f: 659.25, t: 0.14, d: 0.18 }, // E5
+        { f: 783.99, t: 0.28, d: 0.22 }, // G5
+        { f: 1046.50, t: 0.44, d: 0.32 }, // C6
+        { f: 783.99, t: 0.72, d: 0.16 }, // G5
+        { f: 1046.50, t: 0.86, d: 0.75 } // C6 sustained
+      ];
+
+      notes.forEach((n) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(n.f, now + n.t);
+        gain.gain.setValueAtTime(0.14, now + n.t);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+        osc.connect(gain);
+        gain.connect(this.master || this.ctx.destination);
+        osc.start(now + n.t);
+        osc.stop(now + n.t + n.d);
+
+        // Shimmer bell overtone
+        const chime = this.ctx.createOscillator();
+        const chimeGain = this.ctx.createGain();
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(n.f * 2, now + n.t);
+        chimeGain.gain.setValueAtTime(0.05, now + n.t);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d * 0.7);
+        chime.connect(chimeGain);
+        chimeGain.connect(this.master || this.ctx.destination);
+        chime.start(now + n.t);
+        chime.stop(now + n.t + n.d * 0.72);
+      });
+
+      // Sustained brass harmony chord on the triumphant climax
+      [523.25, 659.25, 783.99, 1046.5].forEach((freq) => {
+        const chordOsc = this.ctx.createOscillator();
+        const chordGain = this.ctx.createGain();
+        chordOsc.type = 'sawtooth';
+        chordOsc.frequency.setValueAtTime(freq, now + 0.86);
+
+        const chordFilter = this.ctx.createBiquadFilter();
+        chordFilter.type = 'lowpass';
+        chordFilter.frequency.setValueAtTime(1200, now + 0.86);
+
+        chordGain.gain.setValueAtTime(0.065, now + 0.86);
+        chordGain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+
+        chordOsc.connect(chordFilter);
+        chordFilter.connect(chordGain);
+        chordGain.connect(this.master || this.ctx.destination);
+        chordOsc.start(now + 0.86);
+        chordOsc.stop(now + 1.62);
+      });
+    } catch {}
+  }
+
+  critStrike() {
+    this.strike({ isCrit: true });
+  }
+
+  bossTelegraphCharge() {
+    this.playTone(120, 0.45, 'sawtooth', 0.08);
+    setTimeout(() => this.playTone(180, 0.45, 'triangle', 0.09), 300);
+    setTimeout(() => this.playTone(280, 0.50, 'sine', 0.10), 700);
+  }
+
+  bossImpact() {
+    this.bossRoar({ isDragon: false });
+  }
+
+  hitDamage() {
+    this.playTone(110, 0.20, 'square', 0.12);
+    setTimeout(() => this.playTone(85, 0.28, 'sawtooth', 0.10), 40);
+  }
+
+  reentryRumble() {
+    this.playTone(75, 0.40, 'triangle', 0.09);
+  }
+
+  sonicBoom() {
+    this.playTone(80, 0.45, 'sawtooth', 0.18);
+    setTimeout(() => this.playTone(360, 0.15, 'sine', 0.14), 40);
+  }
+
   levelUp() {
-    [523.25, 659.25, 783.99, 1046.5].forEach((n, idx) => {
-      setTimeout(() => this.playTone(n, 0.32, 'triangle', 0.13), idx * 90);
-    });
+    this.victoryFanfare();
   }
 }
 const sfx = new SoundFX();
@@ -365,6 +892,19 @@ applySunAndAtmosphere(5.5, 165, 0xd4a688);
 // COLLISION ENGINE (2-PASS SLIDING CYLINDER & AABB OBSTACLE SOLVER)
 // ============================================================================
 const worldColliders = [];
+
+// ============================================================================
+// AAA COMBAT FEEDBACK, PRO CAMERA, BOSS TELEGRAPHS & ORBITAL FLIGHT SYSTEMS
+// ============================================================================
+const combatFeedback = new CombatFeedbackSystem(scene, (x, z) => getLocalGroundHeight(x, z));
+const proCamera = new ProCameraController(camera, (x, z) => getLocalGroundHeight(x, z), worldColliders);
+const bossTelegraphs = new BossTelegraphSystem(scene, (x, z) => getLocalGroundHeight(x, z), sfx, combatFeedback);
+const orbitalFX = new OrbitalFlightFX(scene, camera, sfx, combatFeedback);
+window.combatFeedback = combatFeedback;
+window.proCamera = proCamera;
+window.bossTelegraphs = bossTelegraphs;
+window.orbitalFX = orbitalFX;
+
 
 function addCylinderCollider(x, z, radius, minY = -5, maxY = 35) {
   worldColliders.push({ type: 'cylinder', x, z, radius, minY, maxY });
@@ -566,6 +1106,7 @@ const animatedNavalFleet = [];
 const lighthouseBeams = [];
 const celestialBodies = [];
 const wayfinderPlaques = [];
+const animatedWorldProps = [];
 let aetherEmbers = null;
 
 function createDiegeticWayfinder(title, subtitle, pos, maxVisibleDist = 52) {
@@ -1259,6 +1800,29 @@ function buildMasterPlannedUniverse() {
   earthOrbitalGroup.position.set(0, -264, 0);
   worldGroup.add(earthOrbitalGroup);
   celestialBodies.push(earthCloudLayer);
+
+  // High-Performance Procedural World Architectures across all 4 Celestial Worlds
+  buildDetailedWorldArchitectures({
+    scene,
+    worldGroup,
+    baseMaterials: {
+      obsidianMat,
+      polishedMarbleMat,
+      ancientGoldMat,
+      hardwoodMat,
+      canopyGlassMat,
+      lunarSurfaceMat,
+      martianSurfaceMat,
+      aureliaSurfaceMat,
+      sandBeachMat,
+      lushGrassMat,
+      brickBump,
+      moonTex
+    },
+    addCylinderCollider,
+    addBoxCollider,
+    animatedWorldProps
+  });
 }
 
 buildMasterPlannedUniverse();
@@ -2123,16 +2687,35 @@ function createAvatarInstance(
   };
 }
 
+let attackTimer = 0;
+
 function updateAvatarAnimationAndPose(avatarObj, dt, desiredState = 'Idle') {
   if (!avatarObj) return;
   if (avatarObj.mountType && avatarObj.mountType !== 'none') {
     desiredState = 'Idle';
+  } else if (avatarObj === localAvatar && attackTimer > 0) {
+    attackTimer -= dt;
+    desiredState = 'Attack';
   }
   playAvatarAnim(avatarObj, desiredState);
   if (avatarObj.mixer) avatarObj.mixer.update(dt);
   // Apply seated biomechanical leg/knee/arm articulation AFTER mixer update!
   if (avatarObj.mountType && avatarObj.mountType !== 'none' && avatarObj.clonedScene) {
     applySeatedMountPose(avatarObj.clonedScene, avatarObj.mountType);
+  } else if (avatarObj === localAvatar && attackTimer > 0 && avatarObj.clonedScene) {
+    // Dynamic martial energy slash / punch arm articulation
+    const swingPhase = Math.sin(Math.max(0, attackTimer / 0.42) * Math.PI);
+    avatarObj.clonedScene.traverse((b) => {
+      if (!b.isBone) return;
+      if (b.name.includes('RightArm')) {
+        b.rotation.x -= swingPhase * 1.5;
+        b.rotation.y += swingPhase * 0.7;
+      } else if (b.name.includes('RightForeArm')) {
+        b.rotation.x -= swingPhase * 1.1;
+      } else if (b.name.includes('Spine')) {
+        b.rotation.y += swingPhase * 0.3;
+      }
+    });
   }
 }
 
@@ -2146,7 +2729,8 @@ function playAvatarAnim(avatarObj, desiredState = 'Idle') {
     Walk: ['walk', 'walking', 'run'],
     Run: ['run', 'running', 'walk'],
     Jump: ['jump', 'run', 'idle'],
-    Dance: ['agree', 'sambadance', 'dance', 'wave', 'idle']
+    Dance: ['agree', 'sambadance', 'dance', 'wave', 'idle'],
+    Attack: ['punch', 'strike', 'attack', 'agree', 'run', 'idle']
   }[desiredState] || ['idle'];
 
   for (const c of candidates) {
@@ -2372,6 +2956,9 @@ function spawnFloatingCombatText(worldPos, text, isCrit = false, color = '#ffe2a
 let localAvatar = null;
 const playerPos = new THREE.Vector3(0, 0, 18);
 const playerVel = new THREE.Vector3();
+window.playerPos = playerPos;
+window.playerVel = playerVel;
+window.__teleportTo = (x, y, z) => { playerPos.set(x, y, z); playerVel.set(0, 0, 0); };
 let playerYaw = 0;
 let prevPlayerYaw = 0;
 let cameraYaw = 0;
@@ -2724,6 +3311,10 @@ window.addEventListener('pointermove', (e) => {
   prevCamPt = { x: e.clientX, y: e.clientY };
   cameraYaw -= dx * 0.0065;
   cameraPitch = Math.max(-0.35, Math.min(1.15, cameraPitch + dy * 0.005));
+  if (proCamera) {
+    proCamera.yaw = cameraYaw;
+    proCamera.pitch = cameraPitch;
+  }
 });
 window.addEventListener('pointerup', (e) => {
   if (e.pointerId === cameraPointerId) cameraPointerId = null;
@@ -2916,19 +3507,95 @@ function updateLocalMonsters(dt) {
       if (now >= m.respawnAt) {
         m.state = 'patrol';
         m.hp = m.maxHp;
+        m.x = m.homeX;
+        m.y = m.homeY;
+        m.z = m.homeZ;
       } else {
         continue;
       }
     }
-    m.phase = (m.phase || 0) + dt * 0.45;
-    m.x = m.homeX + Math.cos(m.phase) * m.patrolR;
-    m.z = m.homeZ + Math.sin(m.phase) * m.patrolR;
-    m.ry = m.phase + Math.PI / 2;
 
-    const dx = m.x - playerPos.x;
-    const dy = m.y - playerPos.y;
-    const dz = m.z - playerPos.z;
-    if (dx * dx + dy * dy + dz * dz <= 220 * 220) {
+    const dx = playerPos.x - m.x;
+    const dy = playerPos.y - m.y;
+    const dz = playerPos.z - m.z;
+    const distToPlayer = Math.hypot(dx, dz);
+    const distFromHome = Math.hypot(m.x - m.homeX, m.z - m.homeZ);
+    const isBoss = m.rank === 'boss';
+    const isElite = m.rank === 'elite';
+    const aggroRadius = isBoss ? 26.0 : (isElite ? 18.0 : 14.0);
+
+    // 1. Boss AoE Telegraph & Special Attack State Machine
+    if (isBoss && distToPlayer <= 28.0 && Math.abs(dy) < 16.0) {
+      if (!m.lastSpecialAt) m.lastSpecialAt = now - 4000;
+      const bossCfg = BOSS_TELEGRAPH_CONFIGS[m.id];
+      const cd = (bossCfg ? bossCfg.cooldown : 11.0) * 1000;
+
+      if (now - m.lastSpecialAt > cd && (!m.chargingUntil || now > m.chargingUntil)) {
+        m.lastSpecialAt = now;
+        const dur = (bossCfg ? bossCfg.duration : 2.2);
+        m.chargingUntil = now + dur * 1000;
+        m.ry = Math.atan2(dx, dz);
+
+        // Targeted center position
+        const targetCenter = (m.id === 'boss_earth')
+          ? new THREE.Vector3(m.x, m.y, m.z)
+          : playerPos.clone();
+
+        bossTelegraphs.startTelegraph(m.id, targetCenter);
+      }
+    }
+
+    // 2. Boss Charging Stance
+    if (m.chargingUntil && now < m.chargingUntil) {
+      // Boss pauses movement, locks rotation towards player while charging special
+      m.ry = Math.atan2(dx, dz);
+    }
+    // 3. Combat Aggro & Chase Behavior
+    else if (state.joined && distToPlayer <= aggroRadius && Math.abs(dy) < 12.0 && distFromHome < m.patrolR + 25.0) {
+      m.ry = Math.atan2(dx, dz);
+      const minMelee = isBoss ? 3.6 : 2.2;
+      if (distToPlayer > minMelee) {
+        const speed = isBoss ? 7.2 : (isElite ? 6.2 : 5.0);
+        m.x += (dx / distToPlayer) * speed * dt;
+        m.z += (dz / distToPlayer) * speed * dt;
+      } else {
+        // Melee Attack against Player
+        if (!m.lastMeleeAt || now - m.lastMeleeAt > 1600) {
+          m.lastMeleeAt = now;
+          const vit = state.stats?.vit || 5;
+          const gear = state.gearLevel || 0;
+          const def = Math.min(0.65, (vit * 0.008) + (gear * 0.025));
+          const dmg = Math.max(4, Math.round(m.atk * (1 - def)));
+          state.hp = Math.max(1, (state.hp || state.maxHp) - dmg);
+          spawnFloatingCombatText(playerPos.clone().add(new THREE.Vector3(0, 1.4, 0)), `-${dmg}`, false, '#ff4444');
+          combatFeedback.addScreenShake(0.28);
+          combatFeedback.triggerDamageVignette(0.55);
+          sfx.hitDamage();
+          updateHUD();
+          saveLocalState();
+        }
+      }
+    }
+    // 4. Aggro Break & Retreat to Home Spot
+    else if (distFromHome > m.patrolR + 1.2) {
+      const hx = m.homeX - m.x;
+      const hz = m.homeZ - m.z;
+      const hDist = Math.hypot(hx, hz);
+      m.ry = Math.atan2(hx, hz);
+      const retreatSpd = 5.2;
+      m.x += (hx / hDist) * retreatSpd * dt;
+      m.z += (hz / hDist) * retreatSpd * dt;
+    }
+    // 5. Normal Circular Patrol
+    else {
+      m.phase = (m.phase || 0) + dt * 0.45;
+      m.x = m.homeX + Math.cos(m.phase) * m.patrolR;
+      m.z = m.homeZ + Math.sin(m.phase) * m.patrolR;
+      m.ry = m.phase + Math.PI / 2;
+    }
+
+    const pDistSq = (m.x - playerPos.x) ** 2 + (m.y - playerPos.y) ** 2 + (m.z - playerPos.z) ** 2;
+    if (pDistSq <= 240 * 240) {
       list.push({
         id: m.id,
         n: m.name,
@@ -2977,6 +3644,32 @@ function handleOfflineAetherStrike() {
   const hitPos = new THREE.Vector3(closestMob.x, closestMob.y + 1.8, closestMob.z);
   spawnFloatingCombatText(hitPos, isCrit ? `CRIT -${dmg}!` : `-${dmg}`, isCrit, usingShot ? '#6ce5ff' : '#ffe2a6');
 
+  // AAA Juicy Combat Feedback Integration
+  const hitDir = new THREE.Vector3(closestMob.x - playerPos.x, 0.4, closestMob.z - playerPos.z).normalize();
+  combatFeedback.spawnDirectionalHitSparks(hitPos, hitDir, isCrit, usingShot, isCrit ? 36 : 24);
+
+  const mobEnt = monsterEntities.get(closestMob.id);
+  if (mobEnt) {
+    combatFeedback.flashEnemyHit(mobEnt, isCrit);
+  }
+
+  combatFeedback.addScreenShake(isCrit ? 0.38 : (usingShot ? 0.24 : 0.14));
+  combatFeedback.triggerHitStop(isCrit ? 0.055 : 0.035);
+
+  if (isCrit) {
+    sfx.critStrike();
+    combatFeedback.triggerCritVignette(0.55);
+  }
+
+  // Weapon durability wear on strike
+  state.durability = Math.max(1, Math.round(((state.durability ?? 100) - 0.2) * 10) / 10);
+  updateEquipmentFrame();
+
+  // Boss roars in rage when struck
+  if (closestMob.rank === 'boss' && closestMob.hp > 0 && Math.random() < 0.45) {
+    sfx.bossRoar({ isDragon: closestMob.model === 'DragonBoss' || closestMob.name.includes('DRAGÓN') });
+  }
+
   if (closestMob.hp <= 0) {
     closestMob.state = 'dead';
     closestMob.respawnAt = performance.now() + 12000;
@@ -2992,6 +3685,7 @@ function handleOfflineAetherStrike() {
     if (closestMob.rank === 'boss' || Math.random() < 0.10) state.inventory.chaos = (state.inventory.chaos || 0) + 1;
 
     showToast(closestMob.rank === 'boss' ? '¡JEFE SUPREMO DERROTADO!' : 'ENEMIGO VENCIDO', `+${closestMob.xp} XP | +${closestMob.coins} ✦`);
+    checkBountyObjective('kill', { mobId: closestMob.id, mobRank: closestMob.rank });
     checkOfflineLevelUp();
     saveLocalState();
   }
@@ -3007,9 +3701,18 @@ function checkOfflineLevelUp() {
     state.skillPoints = (state.skillPoints || 0) + 1;
     state.maxHp = 260 + state.level * 25 + (state.stats.vit || 5) * 15;
     state.hp = state.maxHp;
-    sfx.levelUp();
+    state.durability = 100;
     rebuildLocalAvatar();
-    showToast(`¡ASCENSO AL NIVEL ${state.level}!`, '+5 Puntos de Atributo y +1 de Códice [K].');
+    showVictoryBanner(
+      '✦ ASCENSIÓN SUPREMA DE PODER ✦',
+      `¡NIVEL ${state.level} ALCANZADO!`,
+      'Tu resonancia de éter ha ascendido en el Santuario Solar',
+      [
+        '⚔️ +5 Puntos de Atributo (STR/AGI/VIT/INT/DEX/LUK)',
+        '⚡ +1 Punto de Códice de Habilidad [K]',
+        '💚 Integridad y Durabilidad Restauradas al 100%'
+      ]
+    );
   }
   updateHUD();
   saveLocalState();
@@ -3029,7 +3732,9 @@ function handleOfflineForgeUpgrade(mode) {
       }
       inv.bless--;
       state.gearLevel++;
+      state.durability = 100;
       sfx.levelUp();
+      checkBountyObjective('forge', { gearLevel: state.gearLevel });
       showToast('¡FORJA EXITOSA!', `Equipo ascendido a +${state.gearLevel}. Fulgor intensificado.`);
     } else if (state.gearLevel < 9) {
       if ((inv.soul || 0) < 1) {
@@ -3039,7 +3744,9 @@ function handleOfflineForgeUpgrade(mode) {
       inv.soul--;
       if (Math.random() < 0.75) {
         state.gearLevel++;
+        state.durability = 100;
         sfx.levelUp();
+        checkBountyObjective('forge', { gearLevel: state.gearLevel });
         showToast('¡FORJA EXITOSA!', `Equipo ascendido a +${state.gearLevel}.`);
       } else {
         state.gearLevel = Math.max(6, state.gearLevel - 1);
@@ -3055,7 +3762,9 @@ function handleOfflineForgeUpgrade(mode) {
       inv.chaos--;
       if (Math.random() < 0.50) {
         state.gearLevel++;
+        state.durability = 100;
         sfx.levelUp();
+        checkBountyObjective('forge', { gearLevel: state.gearLevel });
         showToast('¡ASCENSIÓN LEGENDARIA!', `¡Equipo forjado a +${state.gearLevel}! Aura resplandeciente.`);
       } else {
         state.gearLevel = Math.max(0, state.gearLevel - 2);
@@ -3410,6 +4119,19 @@ function handleServerEvent(ev) {
       const pos = new THREE.Vector3(ev.x, ev.y, ev.z);
       const label = ev.isCrit ? `CRIT -${ev.dmg}!` : `-${ev.dmg}`;
       spawnFloatingCombatText(pos, label, ev.isCrit, ev.usedSoulshot ? '#6ce5ff' : '#ffe2a6');
+      const mobEnt = monsterEntities.get(ev.mobId);
+      if (mobEnt) {
+        const hitDir = new THREE.Vector3().subVectors(pos, playerPos).normalize();
+        combatFeedback.spawnDirectionalHitSparks(pos, hitDir, ev.isCrit, ev.usedSoulshot, ev.isCrit ? 34 : 22);
+        combatFeedback.flashEnemyHit(mobEnt, ev.isCrit);
+        combatFeedback.addScreenShake(ev.isCrit ? 0.36 : 0.18);
+        combatFeedback.triggerHitStop(ev.isCrit ? 0.055 : 0.035);
+        if (ev.isCrit) combatFeedback.triggerCritVignette(0.5);
+      }
+      break;
+    }
+    case 'BOSS_TELEGRAPH': {
+      bossTelegraphs.startTelegraph(ev.bossId, new THREE.Vector3(ev.x, ev.y, ev.z));
       break;
     }
     case 'MOB_DEFEATED': {
@@ -3486,9 +4208,21 @@ function spawnShockwave(centerPos, colorHex = 0xffcf70) {
 }
 
 function triggerAetherStrike() {
-  sfx.strike();
+  attackTimer = 0.42;
   const usingShot = state.soulshotsActive && (state.inventory?.soulshots || 0) > 0;
-  spawnShockwave(playerPos.clone().add(new THREE.Vector3(0, 0.7, 0)), usingShot ? 0x6ce5ff : 0xffcf70);
+  sfx.strike({ isCrit: false, usingSoulshot: usingShot });
+
+  state.durability = Math.max(1, Math.round(((state.durability ?? 100) - 0.2) * 10) / 10);
+  updateEquipmentFrame();
+
+  combatFeedback.spawnShockwave(playerPos.clone().add(new THREE.Vector3(0, 0.7, 0)), usingShot ? 0x6ce5ff : 0xffcf70, 7.5);
+  combatFeedback.addScreenShake(usingShot ? 0.16 : 0.08);
+
+  // Directional forward wind/spark burst
+  const strikeDir = new THREE.Vector3(-Math.sin(playerYaw), 0.2, -Math.cos(playerYaw));
+  const strikePos = playerPos.clone().addScaledVector(strikeDir, 1.8).add(new THREE.Vector3(0, 1.1, 0));
+  combatFeedback.spawnDirectionalHitSparks(strikePos, strikeDir, false, usingShot, 14);
+
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'aether_strike' }));
   } else {
@@ -3701,6 +4435,9 @@ function updateHUD() {
       lbBox.appendChild(row);
     });
   }
+
+  updateEquipmentFrame();
+  updateBountyHUD();
 }
 
 let toastTimer = null;
@@ -3711,6 +4448,395 @@ function showToast(title, desc) {
   t.classList.remove('hidden');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.add('hidden'), 4200);
+}
+
+// ============================================================================
+// CYBER-FANTASY LUXURY EQUIPMENT FRAME & RARITY TIERS (+0 to +15)
+// ============================================================================
+function getWeaponTitleForAvatar(avatar) {
+  const titles = {
+    Valen: 'Hoja de Éter Solar',
+    Elena: 'Báculo Astral de la Valquiria',
+    ShadowOps: 'Dagas de Sombras y Obsidiana',
+    Kael: 'Rifle de Plasma Orbital',
+    DesertRanger: 'Martillo Pretoriano Solar',
+    Aegis: 'Baluarte de Cobalto Ancestral'
+  };
+  return titles[avatar] || 'Hoja de Éter Solar';
+}
+
+function updateEquipmentFrame() {
+  const frame = document.getElementById('equipment-frame');
+  if (!frame) return;
+
+  const lvl = state.gearLevel || 0;
+  const durability = typeof state.durability === 'number' ? state.durability : 100;
+
+  // Determine rarity tier:
+  // +0 to +3: Común (Slate/Silver)
+  // +4 to +6: Mágico (Jade/Emerald)
+  // +7 to +10: Raro (Sapphire Azure)
+  // +11 to +14: Épico (Amethyst Violet)
+  // +15: Legendario (Gold Incandescent)
+  let rarityClass = 'rarity-common';
+  let rarityText = 'COMÚN';
+  if (lvl >= 15) {
+    rarityClass = 'rarity-legendary';
+    rarityText = 'LEGENDARIO +15';
+  } else if (lvl >= 11) {
+    rarityClass = 'rarity-epic';
+    rarityText = 'ÉPICO';
+  } else if (lvl >= 7) {
+    rarityClass = 'rarity-rare';
+    rarityText = 'RARO';
+  } else if (lvl >= 4) {
+    rarityClass = 'rarity-uncommon';
+    rarityText = 'MÁGICO';
+  }
+
+  frame.className = `equipment-frame ${rarityClass}`;
+
+  const weaponTitleEl = document.getElementById('hud-weapon-title');
+  if (weaponTitleEl) weaponTitleEl.textContent = `${getWeaponTitleForAvatar(state.avatarType)} +${lvl}`;
+
+  const tierBadgeEl = document.getElementById('hud-gear-tier-badge');
+  if (tierBadgeEl) tierBadgeEl.textContent = `+${lvl}`;
+
+  const rarityPillEl = document.getElementById('hud-rarity-pill');
+  if (rarityPillEl) rarityPillEl.textContent = rarityText;
+
+  const durBarEl = document.getElementById('hud-durability-bar');
+  if (durBarEl) {
+    durBarEl.style.width = `${Math.max(0, Math.min(100, durability))}%`;
+    if (durability < 25) {
+      durBarEl.style.background = 'linear-gradient(90deg, #e85555, #ff7b7b)';
+    } else if (durability < 60) {
+      durBarEl.style.background = 'linear-gradient(90deg, #d4a857, #ffe2a6)';
+    } else {
+      durBarEl.style.background = 'linear-gradient(90deg, #22c55e, #4fe0a3)';
+    }
+  }
+
+  const durNumEl = document.getElementById('hud-durability-num');
+  if (durNumEl) durNumEl.textContent = Math.round(durability);
+
+  const gearBadge = document.getElementById('hud-gear-badge');
+  if (gearBadge) {
+    gearBadge.textContent = `+${lvl} ${rarityText}`;
+  }
+}
+
+// ============================================================================
+// CYBER-FANTASY STELLAR BOUNTY & QUEST TRACKER
+// ============================================================================
+const bountyQuests = [
+  {
+    id: 'bounty_sentinels',
+    category: 'TIER I • SANTUARIO SOLAR',
+    title: 'Purga de Centinelas Corruptos',
+    desc: 'Derrota 3 Centinelas en los jardines de la Tierra.',
+    type: 'kill',
+    targetMobIds: ['mob_e1', 'mob_e2', 'mob_e3', 'mob_e4', 'mob_e5'],
+    targetName: 'Centinelas',
+    required: 3,
+    targetCoords: { x: -40, y: 0, z: -35 },
+    rewardCoins: 450,
+    rewardXp: 600,
+    rewardItem: 'bless',
+    rewardText: '+450 ✦ • +600 XP • 💎 Gema Solar'
+  },
+  {
+    id: 'bounty_colossus',
+    category: 'TIER II • COLISEO DEL VALOR',
+    title: 'Desafío del Coloso de Aethelgard',
+    desc: 'Marcha al Coliseo del Este y abate al MVP Coloso (Nv. 25).',
+    type: 'kill',
+    targetMobIds: ['boss_earth'],
+    targetName: 'Coloso MVP',
+    required: 1,
+    targetCoords: { x: 62, y: 0, z: -18 },
+    rewardCoins: 1200,
+    rewardXp: 1800,
+    rewardItem: 'soul',
+    rewardText: '+1,200 ✦ • +1,800 XP • 💎 Gema Astral'
+  },
+  {
+    id: 'bounty_dragon',
+    category: 'TIER III • OCÉANO ABISAL',
+    title: 'Caza del Dragón Leviatán',
+    desc: 'Navega en Galeón [6] o Caza al Sur y caza al Dragón Leviatán (Nv. 38).',
+    type: 'kill',
+    targetMobIds: ['boss_ocean'],
+    targetName: 'Dragón Leviatán',
+    required: 1,
+    targetCoords: { x: 0, y: 0, z: 192 },
+    rewardCoins: 2500,
+    rewardXp: 3500,
+    rewardItem: 'chaos',
+    rewardText: '+2,500 ✦ • +3,500 XP • 💎 Gema Primordial'
+  },
+  {
+    id: 'bounty_moon',
+    category: 'TIER IV • FRONTERA LUNAR',
+    title: 'Salto Orbital a la Luna Selene',
+    desc: 'Vuela a la Base Tranquilidad en la Luna (Altitud 260m).',
+    type: 'altitude_location',
+    minY: 240,
+    targetZ: -680,
+    targetCoords: { x: 0, y: 260, z: -680 },
+    required: 1,
+    rewardCoins: 3000,
+    rewardXp: 4000,
+    rewardItem: 'feather',
+    rewardText: '+3,000 ✦ • +4,000 XP • 🪶 Pluma de Serafín'
+  },
+  {
+    id: 'bounty_forge',
+    category: 'TIER V • FORJA PRIMORDIAL',
+    title: 'Forja Resplandeciente (+7 o más)',
+    desc: 'Imbuye Gemas en la Forja Central [F] hasta alcanzar +7 o superior.',
+    type: 'gear_level',
+    requiredLevel: 7,
+    required: 1,
+    targetCoords: { x: 0, y: 0, z: 0 },
+    rewardCoins: 5000,
+    rewardXp: 6000,
+    rewardItem: 'chaos',
+    rewardText: '+5,000 ✦ • +6,000 XP • 💎 Joyas Primordiales'
+  }
+];
+
+function updateBountyHUD() {
+  const bountyTracker = document.getElementById('bounty-tracker');
+  if (!bountyTracker) return;
+
+  const idx = state.bountyIndex || 0;
+  if (idx >= bountyQuests.length) {
+    document.getElementById('bounty-category').textContent = 'ASCENSIÓN COMPLETA';
+    document.getElementById('bounty-title').textContent = 'Gran Campeón del Sistema';
+    document.getElementById('bounty-desc').textContent = 'Todas las cacerías estelares han sido completadas con gloria eterna.';
+    document.getElementById('bounty-progress-bar').style.width = '100%';
+    document.getElementById('bounty-counter').textContent = '5 / 5 ✓';
+    document.getElementById('bounty-distance').textContent = 'COMPLETO';
+    document.getElementById('bounty-reward-val').textContent = '👑 Rango Cósmico Máximo';
+    return;
+  }
+
+  const q = bountyQuests[idx];
+  const prog = Math.min(q.required, state.bountyProgress || 0);
+
+  document.getElementById('bounty-category').textContent = q.category;
+  document.getElementById('bounty-title').textContent = q.title;
+  document.getElementById('bounty-desc').textContent = q.desc;
+  document.getElementById('bounty-reward-val').textContent = q.rewardText;
+  document.getElementById('bounty-counter').textContent = `${prog} / ${q.required}`;
+  const pct = Math.round((prog / q.required) * 100);
+  document.getElementById('bounty-progress-bar').style.width = `${pct}%`;
+
+  updateBountyDistance();
+}
+
+function updateBountyDistance() {
+  const distEl = document.getElementById('bounty-distance');
+  if (!distEl) return;
+  const idx = state.bountyIndex || 0;
+  if (idx >= bountyQuests.length) return;
+  const q = bountyQuests[idx];
+  if (!q.targetCoords) return;
+
+  const dx = q.targetCoords.x - playerPos.x;
+  const dy = q.targetCoords.y - playerPos.y;
+  const dz = q.targetCoords.z - playerPos.z;
+  const distM = Math.round(Math.sqrt(dx * dx + dy * dy + dz * dz));
+  distEl.textContent = `${distM}m`;
+}
+
+function checkBountyObjective(type, data = {}) {
+  const idx = state.bountyIndex || 0;
+  if (idx >= bountyQuests.length) return;
+  const q = bountyQuests[idx];
+
+  let completedStep = false;
+  if (q.type === 'kill' && type === 'kill') {
+    if (q.targetMobIds.includes(data.mobId) || (data.mobRank === 'boss' && q.targetMobIds.some(id => id.includes('boss')))) {
+      state.bountyProgress = (state.bountyProgress || 0) + 1;
+      completedStep = true;
+    }
+  } else if (q.type === 'altitude_location' && type === 'move') {
+    if (playerPos.y >= q.minY && Math.abs(playerPos.z - q.targetZ) < 180) {
+      state.bountyProgress = 1;
+      completedStep = true;
+    }
+  } else if (q.type === 'gear_level' && type === 'forge') {
+    if ((state.gearLevel || 0) >= q.requiredLevel) {
+      state.bountyProgress = 1;
+      completedStep = true;
+    }
+  }
+
+  if (completedStep) {
+    if ((state.bountyProgress || 0) >= q.required) {
+      state.coins += q.rewardCoins;
+      state.xp += q.rewardXp;
+      if (q.rewardItem && state.inventory) {
+        state.inventory[q.rewardItem] = (state.inventory[q.rewardItem] || 0) + 1;
+      }
+      showVictoryBanner(
+        '¡MISIÓN DE CACERÍA COMPLETADA!',
+        q.title,
+        'Has reclamado tu honor en el Santuario Solar',
+        [
+          `✦ +${q.rewardCoins} Créditos de Éter`,
+          `⚡ +${q.rewardXp} XP de Ascensión`,
+          `🎁 Recompensa: ${q.rewardText}`
+        ]
+      );
+      state.bountyIndex = idx + 1;
+      state.bountyProgress = 0;
+      saveLocalState();
+      checkOfflineLevelUp();
+    }
+    updateBountyHUD();
+    updateHUD();
+  }
+}
+
+// ============================================================================
+// AAA VICTORY BANNER (LEVEL-UP & BOUNTY COMPLETIONS)
+// ============================================================================
+let victoryBannerTimer = null;
+function showVictoryBanner(kicker, title, subline, rewardsList = []) {
+  const banner = document.getElementById('victory-banner');
+  if (!banner) return;
+
+  const kickerEl = document.getElementById('victory-banner-kicker');
+  if (kickerEl) kickerEl.textContent = kicker || '✦ ASCENSIÓN SUPREMA DE PODER ✦';
+
+  const titleEl = document.getElementById('victory-banner-title');
+  if (titleEl) titleEl.textContent = title || '¡NUEVO NIVEL ALCANZADO!';
+
+  const subEl = document.getElementById('victory-banner-sub');
+  if (subEl) subEl.textContent = subline || 'Has desbloqueado nuevo potencial astral';
+
+  const rewardsWrap = document.getElementById('victory-banner-rewards');
+  if (rewardsWrap && rewardsList.length > 0) {
+    rewardsWrap.innerHTML = '';
+    rewardsList.forEach(text => {
+      const badge = document.createElement('div');
+      badge.className = 'victory-reward-badge';
+      badge.textContent = text;
+      rewardsWrap.appendChild(badge);
+    });
+  }
+
+  banner.classList.remove('hidden');
+  sfx.victoryFanfare();
+
+  clearTimeout(victoryBannerTimer);
+  victoryBannerTimer = setTimeout(() => {
+    banner.classList.add('hidden');
+  }, 4800);
+}
+
+// ============================================================================
+// PROXIMITY BOSS ROARS & MONSTER AUDIO REACTIONS
+// ============================================================================
+let lastBossRoarCheck = 0;
+function checkBossProximityRoar() {
+  const now = performance.now();
+  if (now - lastBossRoarCheck < 16000) return;
+  for (const m of localMonsters.values()) {
+    if (m.state === 'dead' || m.rank !== 'boss') continue;
+    const dx = m.x - playerPos.x;
+    const dy = m.y - playerPos.y;
+    const dz = m.z - playerPos.z;
+    if (dx * dx + dy * dy + dz * dz < 26 * 26) {
+      lastBossRoarCheck = now;
+      const isDragon = m.model === 'DragonBoss' || m.name.includes('DRAGÓN') || m.id.includes('ocean') || m.id.includes('aurelia');
+      sfx.bossRoar({ isDragon });
+      showToast('¡RUGIDO DE JEFE SUPREMO!', `${m.name} ruge estremeciendo el entorno.`);
+      break;
+    }
+  }
+}
+
+// ============================================================================
+// MOBILE TOUCH HAPTIC FEEDBACK & TACTILE RIPPLES
+// ============================================================================
+function spawnTouchRipple(clientX, clientY, targetEl) {
+  try {
+    const ripple = document.createElement('div');
+    ripple.className = 'touch-ripple';
+    const rect = targetEl.getBoundingClientRect();
+    ripple.style.left = `${clientX - rect.left}px`;
+    ripple.style.top = `${clientY - rect.top}px`;
+    targetEl.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 400);
+  } catch {}
+}
+
+function initMobileHaptics() {
+  const joyBase = document.getElementById('joystick-base');
+  const joyStick = document.getElementById('joystick-stick');
+  if (joyBase && joyStick) {
+    joyBase.addEventListener('pointerdown', (e) => {
+      joyBase.classList.add('touch-active');
+      joyStick.classList.add('touch-active');
+      if (navigator.vibrate) navigator.vibrate(15);
+      spawnTouchRipple(e.clientX, e.clientY, joyBase);
+      sfx.initAmbiance();
+    });
+    const removeJoyActive = () => {
+      joyBase.classList.remove('touch-active');
+      joyStick.classList.remove('touch-active');
+    };
+    joyBase.addEventListener('pointerup', removeJoyActive);
+    joyBase.addEventListener('pointercancel', removeJoyActive);
+    joyBase.addEventListener('pointerleave', removeJoyActive);
+  }
+
+  const touchBtns = document.querySelectorAll('.wheel-btn, .mount-btn, #context-action-btn, #equipment-frame, #bounty-tracker');
+  touchBtns.forEach(btn => {
+    btn.addEventListener('pointerdown', (e) => {
+      btn.classList.add('btn-pressed');
+      if (navigator.vibrate) navigator.vibrate(12);
+      spawnTouchRipple(e.clientX, e.clientY, btn);
+      sfx.initAmbiance();
+    });
+    const endPress = () => btn.classList.remove('btn-pressed');
+    btn.addEventListener('pointerup', endPress);
+    btn.addEventListener('pointerleave', endPress);
+    btn.addEventListener('pointercancel', endPress);
+  });
+
+  const vicBanner = document.getElementById('victory-banner');
+  if (vicBanner) {
+    vicBanner.addEventListener('click', () => {
+      vicBanner.classList.add('hidden');
+      clearTimeout(victoryBannerTimer);
+    });
+  }
+
+  const eqFrame = document.getElementById('equipment-frame');
+  if (eqFrame) {
+    eqFrame.addEventListener('click', () => {
+      sfx.portal();
+      updateHUD();
+      document.getElementById('forge-modal').classList.remove('hidden');
+    });
+  }
+
+  const bountyEl = document.getElementById('bounty-tracker');
+  if (bountyEl) {
+    bountyEl.addEventListener('click', () => {
+      sfx.shard();
+      const idx = state.bountyIndex || 0;
+      if (idx < bountyQuests.length) {
+        const q = bountyQuests[idx];
+        showToast('OBJETIVO DE CACERÍA', `${q.title}: Dirígete a (${q.targetCoords.x}, ${q.targetCoords.z}) • ${document.getElementById('bounty-distance')?.textContent || ''}`);
+      }
+    });
+  }
 }
 
 function appendChat(author, text) {
@@ -3998,7 +5124,9 @@ document.getElementById('custom-glb-input').addEventListener('change', (e) => {
 
 document.getElementById('btn-start-world').addEventListener('click', async () => {
   sfx.init();
+  sfx.initAmbiance();
   sfx.portal();
+  initMobileHaptics();
   const inp = document.getElementById('explorer-name-input').value.trim();
   if (inp) state.playerName = inp;
 
@@ -4031,7 +5159,9 @@ let lastNetSend = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = Math.min(clock.getDelta(), 0.1);
+  const rawDt = Math.min(clock.getDelta(), 0.1);
+  const isHitStop = combatFeedback.isHitStopped();
+  const dt = isHitStop ? rawDt * 0.12 : rawDt;
   const elapsed = clock.getElapsedTime();
 
   oceanWater.material.uniforms['time'].value += dt * 0.6;
@@ -4067,6 +5197,8 @@ function animate() {
   for (const beam of lighthouseBeams) {
     beam.rotation.y += dt * 0.85;
   }
+
+  updateWorldArchitectureAnimations(animatedWorldProps, dt, elapsed);
 
   if (aetherEmbers) {
     aetherEmbers.rotation.y += dt * 0.02;
@@ -4234,26 +5366,48 @@ function animate() {
     updateAvatarAnimationAndPose(localAvatar, dt, currentAnim);
     if (localAvatar.mountMixer && len > 0.08) localAvatar.mountMixer.update(dt * 1.3);
 
-    const camDist =
-      state.mountType === 'ship'
-        ? 15.5
-        : state.mountType === 'starship'
-          ? 14.5
-          : state.mountType === 'jet'
-            ? 12.5
-            : 9.0;
-    const targetCam = new THREE.Vector3(
-      playerPos.x + Math.sin(cameraYaw) * Math.cos(cameraPitch) * camDist,
-      playerPos.y + Math.sin(cameraPitch) * camDist + 2.0,
-      playerPos.z + Math.cos(cameraYaw) * Math.cos(cameraPitch) * camDist
-    );
-    camera.position.lerp(targetCam, 0.18);
-    camera.lookAt(playerPos.x, playerPos.y + 1.8, playerPos.z);
+    proCamera.yaw = cameraYaw;
+    proCamera.pitch = cameraPitch;
+    proCamera.update(dt, playerPos, state.mountType, combatFeedback.getShakeOffsets());
 
     checkInteractions();
     checkOrbPickups();
     updateRingRace();
     renderRadarMinimap();
+
+    // Procedural Web Audio Ambiance, Boss Roar & Bounty Navigation
+    const isMoving = len > 0.08 || ascendHeld || descendHeld;
+    sfx.updateAmbiance({
+      playerPos,
+      mountType: state.mountType,
+      isMoving,
+      speed: baseSpeed,
+      isFlyingMount,
+      dt
+    });
+    checkBossProximityRoar();
+    updateBountyDistance();
+    checkBountyObjective('move');
+
+    // AAA Combat Feedback, Boss Telegraphs & Orbital Flight Systems Update
+    combatFeedback.update(dt, elapsed);
+    bossTelegraphs.update(dt, playerPos, (dmgEvent) => {
+      const vit = state.stats?.vit || 5;
+      const gear = state.gearLevel || 0;
+      const def = Math.min(0.70, (vit * 0.008) + (gear * 0.025));
+      const finalDmg = Math.max(8, Math.round(dmgEvent.damage * (1 - def)));
+      state.hp = Math.max(1, (state.hp || state.maxHp) - finalDmg);
+      if (dmgEvent.knockImpulse) {
+        playerPos.add(dmgEvent.knockImpulse.clone().multiplyScalar(0.4));
+      }
+      spawnFloatingCombatText(playerPos.clone().add(new THREE.Vector3(0, 1.4, 0)), `¡${dmgEvent.attackName}! -${finalDmg}`, true, '#ff3344');
+      const isDragonAtk = Boolean(dmgEvent.attackName?.includes('LEVIATÁN') || dmgEvent.attackName?.includes('DRAGÓN') || dmgEvent.attackName?.includes('FUEGO'));
+      sfx.bossRoar({ isDragon: isDragonAtk });
+      sfx.hitDamage();
+      updateHUD();
+      saveLocalState();
+    });
+    orbitalFX.update(dt, playerPos, playerYaw, state.mountType, state.joined);
 
     const now = performance.now();
     if (ws && ws.readyState === 1 && now - lastNetSend > 66) {
@@ -4311,6 +5465,9 @@ const inpExpl = document.getElementById('explorer-name-input');
 if (inpExpl && state.playerName) {
   inpExpl.value = state.playerName;
 }
+
+initMobileHaptics();
+updateHUD();
 
 preloadCoreModels().then(() => {
   rebuildLocalAvatar();

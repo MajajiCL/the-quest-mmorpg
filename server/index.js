@@ -636,7 +636,7 @@ wss.on('connection', (ws) => {
     atk: 45,
     matk: 45,
     critRate: 12,
-    coins: 600,
+    coins: 5000,
     societyContribution: 0,
     relics: [false, false, false],
     ascension: false,
@@ -1367,12 +1367,29 @@ setInterval(() => {
       }
     }
 
-    if (closestPlayer && Math.hypot(closestPlayer.x - m.homeX, closestPlayer.z - m.homeZ) < m.patrolR + 22) {
+    if (closestPlayer && Math.hypot(closestPlayer.x - m.homeX, closestPlayer.z - m.homeZ) < m.patrolR + 25) {
       const dx = closestPlayer.x - m.x;
       const dz = closestPlayer.z - m.z;
       const dist = Math.hypot(dx, dz);
       m.ry = Math.atan2(dx, dz);
-      if (dist > 2.4) {
+
+      // Broadcast authoritative Boss AoE telegraph to nearby players
+      if (m.rank === 'boss') {
+        const nowMs = Date.now();
+        if (!m.lastSpecialAt) m.lastSpecialAt = nowMs - 4000;
+        if (nowMs - m.lastSpecialAt > 11500) {
+          m.lastSpecialAt = nowMs;
+          broadcastGlobalEvent({
+            kind: 'BOSS_TELEGRAPH',
+            bossId: m.id,
+            x: Math.round((m.id === 'boss_earth' ? m.x : closestPlayer.x) * 10) / 10,
+            y: Math.round((m.id === 'boss_earth' ? m.y : closestPlayer.y) * 10) / 10,
+            z: Math.round((m.id === 'boss_earth' ? m.z : closestPlayer.z) * 10) / 10
+          });
+        }
+      }
+
+      if (dist > (m.rank === 'boss' ? 3.5 : 2.4)) {
         const spd = m.rank === 'boss' ? 0.22 : 0.18;
         m.x += (dx / dist) * spd;
         m.z += (dz / dist) * spd;

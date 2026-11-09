@@ -106,38 +106,90 @@
         <div class="radar-north-tag">N</div>
       </div>
 
-      <div class="telemetry-module">
-        <div class="telemetry-header">
-          <span class="lvl-pill">NV. <b id="hud-level">1</b><small>/100</small></span>
-          <span id="hud-gear-badge" class="lvl-pill" style="background:rgba(108,229,255,0.16);border-color:rgba(108,229,255,0.45);color:#6ce5ff">+0</span>
-          <span id="hud-zone-name" class="zone-title">SANTUARIO SOLAR</span>
+      <div class="telemetry-stack">
+        <div class="telemetry-module">
+          <div class="telemetry-header">
+            <span class="lvl-pill">NV. <b id="hud-level">1</b><small>/100</small></span>
+            <span id="hud-gear-badge" class="lvl-pill" style="background:rgba(108,229,255,0.16);border-color:rgba(108,229,255,0.45);color:#6ce5ff">+0</span>
+            <span id="hud-zone-name" class="zone-title">SANTUARIO SOLAR</span>
+          </div>
+
+          <!-- Slim HP & Shield Bar -->
+          <div class="bar-track hp-track">
+            <div id="hud-hp-fill" class="bar-fill hp-fill" style="width: 100%"></div>
+            <span class="bar-micro-text">VIDA <b id="hud-hp">260/260</b></span>
+          </div>
+
+          <!-- Slim XP Progression Bar -->
+          <div class="bar-track xp-track">
+            <div id="hud-xp-fill" class="bar-fill xp-fill" style="width: 12%"></div>
+            <span id="hud-xp-text" class="bar-micro-text">XP 0 / 100</span>
+          </div>
+
+          <!-- Equipment Rarity & Durability Frame (+0 Común, +7 Raro, +11 Épico, +15 Legendario) -->
+          <div id="equipment-frame" class="equipment-frame rarity-common" title="Arma y Armadura de Éter (Click para abrir Forja)">
+            <div class="eq-inner">
+              <div class="eq-icon-wrap">
+                <svg class="eq-sword-icon" viewBox="0 0 24 24"><path d="M14.5 4l5.5 5.5L7 22l-5-1 1-5L14.5 4z"/><line x1="12" y1="6.5" x2="17.5" y2="12"/></svg>
+                <span id="hud-gear-tier-badge" class="eq-level-tag">+0</span>
+              </div>
+              <div class="eq-details">
+                <div class="eq-name-row">
+                  <span id="hud-weapon-title" class="eq-title">HOJA DE ÉTER SOLAR</span>
+                  <span id="hud-rarity-pill" class="eq-rarity-pill">COMÚN</span>
+                </div>
+                <div class="eq-durability-row">
+                  <div class="durability-track" title="Durabilidad">
+                    <div id="hud-durability-bar" class="durability-fill" style="width: 100%"></div>
+                  </div>
+                  <span class="durability-label">DUR <b id="hud-durability-num">100</b>%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Economy, Jewels, Soulshots & Altitude Strip -->
+          <div class="telemetry-subrow">
+            <span class="stat-token gold-token" title="Créditos de Éter">✦ <b id="hud-coins">600</b></span>
+            <span class="stat-token cyan-token" title="Joyas (Bendición / Alma / Caos)">💎 <b id="hud-jewels">3/1/1</b></span>
+            <span id="hud-altitude" class="stat-token cyan-token">ALT 0m</span>
+            <span class="stat-token emerald-token" title="Exploradores Conectados">● <b id="hud-online">13</b></span>
+          </div>
+
+          <div class="relics-strip">
+            <div id="relic-0" class="relic-node" title="Reliquia del Horizonte (Oeste)">❖ HORIZONTE</div>
+            <div id="relic-1" class="relic-node" title="Reliquia de la Mente (Norte)">❖ MENTE</div>
+            <div id="relic-2" class="relic-node" title="Reliquia del Valor (Este)">❖ VALOR</div>
+            <div id="mount-indicator" class="relic-node active-mode">INFANTERÍA</div>
+          </div>
         </div>
 
-        <!-- Slim HP & Shield Bar -->
-        <div class="bar-track hp-track">
-          <div id="hud-hp-fill" class="bar-fill hp-fill" style="width: 100%"></div>
-          <span class="bar-micro-text">VIDA <b id="hud-hp">260/260</b></span>
-        </div>
-
-        <!-- Slim XP Progression Bar -->
-        <div class="bar-track xp-track">
-          <div id="hud-xp-fill" class="bar-fill xp-fill" style="width: 12%"></div>
-          <span id="hud-xp-text" class="bar-micro-text">XP 0 / 100</span>
-        </div>
-
-        <!-- Economy, Jewels, Soulshots & Altitude Strip -->
-        <div class="telemetry-subrow">
-          <span class="stat-token gold-token" title="Créditos de Éter">✦ <b id="hud-coins">600</b></span>
-          <span class="stat-token cyan-token" title="Joyas (Bendición / Alma / Caos)">💎 <b id="hud-jewels">3/1/1</b></span>
-          <span id="hud-altitude" class="stat-token cyan-token">ALT 0m</span>
-          <span class="stat-token emerald-token" title="Exploradores Conectados">● <b id="hud-online">13</b></span>
-        </div>
-
-        <div class="relics-strip">
-          <div id="relic-0" class="relic-node" title="Reliquia del Horizonte (Oeste)">❖ HORIZONTE</div>
-          <div id="relic-1" class="relic-node" title="Reliquia de la Mente (Norte)">❖ MENTE</div>
-          <div id="relic-2" class="relic-node" title="Reliquia del Valor (Este)">❖ VALOR</div>
-          <div id="mount-indicator" class="relic-node active-mode">INFANTERÍA</div>
+        <!-- CYBER-FANTASY BOUNTY / QUEST TRACKER -->
+        <div id="bounty-tracker" class="bounty-tracker" title="Click para enfocar rumbo al objetivo">
+          <div class="bounty-header">
+            <div class="bounty-badge">
+              <svg class="bounty-icon" viewBox="0 0 24 24"><polygon points="12 2 15 8.5 22 9.3 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+              <span>CACERÍA ESTELAR</span>
+            </div>
+            <span id="bounty-category" class="bounty-category">ORDEN DEL SANTUARIO</span>
+          </div>
+          <div class="bounty-content">
+            <div class="bounty-title-row">
+              <div id="bounty-title" class="bounty-title">Purga de Centinelas Corruptos</div>
+              <span id="bounty-distance" class="bounty-distance">38m</span>
+            </div>
+            <div id="bounty-desc" class="bounty-desc">Derrota 3 Centinelas en los jardines de la Tierra.</div>
+            <div class="bounty-progress-wrap">
+              <div class="bounty-bar-track">
+                <div id="bounty-progress-bar" class="bounty-bar-fill" style="width: 0%"></div>
+              </div>
+              <span id="bounty-counter" class="bounty-count">0 / 3</span>
+            </div>
+            <div class="bounty-footer">
+              <span class="bounty-reward-label">RECOMPENSA:</span>
+              <span id="bounty-reward-val" class="bounty-pill">+450 ✦ • +600 XP • 💎 Gema Solar</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -267,6 +319,26 @@
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg>
           <small>USAR</small>
         </button>
+      </div>
+    </div>
+
+    <!-- AAA VICTORY FANFARE LEVEL-UP BANNER -->
+    <div id="victory-banner" class="victory-banner hidden">
+      <div class="victory-backdrop"></div>
+      <div class="victory-card">
+        <div class="victory-rays"></div>
+        <div class="victory-crest-wrap">
+          <svg class="victory-crest-svg" viewBox="0 0 24 24"><polygon points="12 2 15 8.5 22 9.3 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.3 9 8.5 12 2"/></svg>
+        </div>
+        <div class="victory-kicker" id="victory-banner-kicker">✦ ASCENSIÓN SUPREMA DE PODER ✦</div>
+        <div id="victory-banner-title" class="victory-banner-title">¡NIVEL 2 ALCANZADO!</div>
+        <div class="victory-subline" id="victory-banner-sub">Has desbloqueado nuevo potencial astral</div>
+        <div class="victory-divider"></div>
+        <div class="victory-rewards-list" id="victory-banner-rewards">
+          <div class="victory-reward-badge">⚔️ +5 PUNTOS DE ATRIBUTO [K]</div>
+          <div class="victory-reward-badge">⚡ +1 PUNTO DE CÓDICE</div>
+          <div class="victory-reward-badge">💚 SALUD AL 100%</div>
+        </div>
       </div>
     </div>
   </div>
