@@ -1011,6 +1011,8 @@ export function updateWorldArchitectureAnimations(animatedProps, dt, elapsed) {
       p.points.rotation.y += dt * p.rotSpeed;
     } else if (p.type === 'ringOrbit') {
       p.group.rotation.z += dt * p.rotSpeed;
+    } else if (p.type === 'windmill') {
+      p.hub.rotation.z += dt * p.speed;
     }
   }
 }

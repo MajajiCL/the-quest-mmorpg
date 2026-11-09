@@ -1610,3 +1610,141 @@ html, body {
     display: none;
   }
 }
+
+/* ============================================================================
+   MINIMALIST HUD DOCK & NARRATIVE NPC DIALOGUE SYSTEM
+   ============================================================================ */
+.dock-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.fleet-toggle-pill {
+  background: rgba(14, 23, 38, 0.76);
+  border: 1px solid rgba(108, 229, 255, 0.35);
+  color: #aae9f7;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+}
+
+.fleet-toggle-pill:hover {
+  background: rgba(24, 42, 68, 0.92);
+  border-color: #6ce5ff;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.quick-mounts-dock.collapsed {
+  display: none !important;
+}
+
+/* Dialogue Modal */
+.dialogue-card {
+  max-width: 540px;
+  background: linear-gradient(180deg, rgba(16, 24, 40, 0.94) 0%, rgba(9, 14, 26, 0.96) 100%);
+  border: 1px solid rgba(229, 189, 115, 0.45);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.88), 0 0 24px rgba(229, 189, 115, 0.15);
+}
+
+.npc-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.npc-rank-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffd278;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.dialogue-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin: 16px 0;
+}
+
+.npc-portrait-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  background: radial-gradient(circle, rgba(229, 189, 115, 0.25) 0%, rgba(15, 23, 42, 0.85) 100%);
+  border: 1px solid rgba(229, 189, 115, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.npc-dialogue-speech {
+  flex: 1;
+}
+
+.npc-dialogue-speech p {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #f3ede0;
+  margin: 0 0 12px 0;
+}
+
+.dialogue-quest-reward-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.reward-tag {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #c9d8e8;
+}
+
+.reward-tag b {
+  color: #ffd278;
+}
+
+.dialogue-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 12px;
+}
+
+.btn-subtle-close {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: #a0aec0;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-subtle-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+}

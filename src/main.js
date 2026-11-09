@@ -13,6 +13,7 @@ import { BossTelegraphSystem, BOSS_TELEGRAPH_CONFIGS } from './combat/BossTelegr
 import { CombatFeedbackSystem } from './combat/CombatFeedbackSystem.js';
 import { ProCameraController } from './camera/ProCameraController.js';
 import { OrbitalFlightFX } from './effects/OrbitalFlightFX.js';
+import { getEarthTerrainElevation, buildAethelgardValley } from './world/AethelgardValley.js';
 
 // ============================================================================
 // BASE URL & ASSET RESOLVER (SUPPORTS GITHUB PAGES SUBPATH HOSTING)
@@ -199,9 +200,9 @@ const PLANETARY_DESTINATIONS = {
 };
 
 const WEATHER_PRESETS = [
-  { name: 'Atardecer Imperial', elevation: 5.5, azimuth: 165, fogColor: 0xd4a688, exposure: 0.86, lightIntensity: 3.2 },
-  { name: 'Sol Cenital', elevation: 42, azimuth: 140, fogColor: 0xbfd8eb, exposure: 0.92, lightIntensity: 3.8 },
-  { name: 'Noche Astral', elevation: -5, azimuth: 200, fogColor: 0x060b16, exposure: 0.76, lightIntensity: 1.2 }
+  { name: 'Día Radiante en Aethelgard', elevation: 45, azimuth: 215, fogColor: 0xa3c5e8, exposure: 0.95, lightIntensity: 1.25 },
+  { name: 'Atardecer Dorado', elevation: 12, azimuth: 175, fogColor: 0xd9b392, exposure: 0.92, lightIntensity: 1.15 },
+  { name: 'Noche de Constelaciones', elevation: -8, azimuth: 210, fogColor: 0x081022, exposure: 0.82, lightIntensity: 0.65 }
 ];
 
 // ============================================================================
@@ -780,13 +781,13 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 0.86;
+renderer.toneMappingExposure = 0.95;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x03060e);
-scene.fog = new THREE.FogExp2(0xd4a688, 0.0018);
+scene.background = new THREE.Color(0x0a1424);
+scene.fog = new THREE.FogExp2(0xa3c5e8, 0.00085);
 
 const camera = new THREE.PerspectiveCamera(54, window.innerWidth / window.innerHeight, 0.1, 5500);
 
@@ -794,9 +795,9 @@ const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
 const bloomPass = new UnrealBloomPass(
   new THREE.Vector2(window.innerWidth, window.innerHeight),
-  0.28,
-  0.55,
-  0.85
+  0.18,
+  0.40,
+  0.88
 );
 composer.addPass(bloomPass);
 
@@ -807,10 +808,10 @@ scene.add(sky);
 
 const sunPosition = new THREE.Vector3();
 const skyUniforms = sky.material.uniforms;
-skyUniforms['turbidity'].value = 8;
-skyUniforms['rayleigh'].value = 2.4;
-skyUniforms['mieCoefficient'].value = 0.005;
-skyUniforms['mieDirectionalG'].value = 0.82;
+skyUniforms['turbidity'].value = 2.0;
+skyUniforms['rayleigh'].value = 1.2;
+skyUniforms['mieCoefficient'].value = 0.0015;
+skyUniforms['mieDirectionalG'].value = 0.8;
 
 // Deep Space Starfield
 const starCount = 4200;
@@ -828,7 +829,7 @@ const spaceStars = new THREE.Points(
 );
 scene.add(spaceStars);
 
-const sunLight = new THREE.DirectionalLight(0xfff1dc, 3.2);
+const sunLight = new THREE.DirectionalLight(0xfff8ee, 1.25);
 sunLight.castShadow = true;
 sunLight.shadow.mapSize.set(isMobile ? 1024 : 2048, isMobile ? 1024 : 2048);
 sunLight.shadow.camera.near = 1;
@@ -841,12 +842,12 @@ sunLight.shadow.camera.bottom = -shadowBound;
 sunLight.shadow.bias = -0.0005;
 scene.add(sunLight);
 
-const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x3b4859, 0.95);
+const hemiLight = new THREE.HemisphereLight(0xddeeff, 0x3d4838, 0.55);
 scene.add(hemiLight);
 
-const showcaseSpot = new THREE.SpotLight(0xffe4b5, 4.5, 25, Math.PI / 4, 0.5);
-showcaseSpot.position.set(0, 7.5, 23);
-showcaseSpot.target.position.set(0, 1.2, 18);
+const showcaseSpot = new THREE.SpotLight(0xffe4b5, 0.0, 25, Math.PI / 4, 0.5);
+showcaseSpot.position.set(-28, 6.0, 42);
+showcaseSpot.target.position.set(-21, 1.5, 25);
 scene.add(showcaseSpot);
 scene.add(showcaseSpot.target);
 
@@ -854,7 +855,7 @@ const rgbeLoader = new RGBELoader();
 rgbeLoader.load(toAsset('textures/venice_sunset_1k.hdr'), (hdrTexture) => {
   hdrTexture.mapping = THREE.EquirectangularReflectionMapping;
   scene.environment = hdrTexture;
-  scene.environmentIntensity = 0.95;
+  scene.environmentIntensity = 0.28;
 });
 
 const texLoader = new THREE.TextureLoader();
@@ -886,7 +887,7 @@ function applySunAndAtmosphere(elevation, azimuth, fogColorHex) {
   sunLight.position.copy(sunPosition).multiplyScalar(90);
   scene.fog.color.setHex(fogColorHex);
 }
-applySunAndAtmosphere(5.5, 165, 0xd4a688);
+applySunAndAtmosphere(45, 215, 0xa3c5e8);
 
 // ============================================================================
 // COLLISION ENGINE (2-PASS SLIDING CYLINDER & AABB OBSTACLE SOLVER)
@@ -1107,6 +1108,7 @@ const lighthouseBeams = [];
 const celestialBodies = [];
 const wayfinderPlaques = [];
 const animatedWorldProps = [];
+let valleyTrainingDummies = [];
 let aetherEmbers = null;
 
 function createDiegeticWayfinder(title, subtitle, pos, maxVisibleDist = 52) {
@@ -1211,176 +1213,57 @@ function createUnifiedPlanetBody(radius, plateauRadius, material, atmoColorHex) 
 
 function buildMasterPlannedUniverse() {
   // ==========================================================================
-  // 1. PLANET EARTH: MASTER-PLANNED ISLAND CITADEL OF AETHELGARD & OCEAN HARBOR
+  // 1. PLANET EARTH: AAA VALLEY OF AETHELGARD (ORGANIC HEIGHTMAP TERRAIN)
   // ==========================================================================
-  // Sloping Golden Sand Beach Skirt (r = 76m to 94m) meeting the turquoise Ocean Water
-  const goldenBeach = new THREE.Mesh(new THREE.CylinderGeometry(76, 95, 1.4, 72), sandBeachMat);
-  goldenBeach.position.y = -0.72;
-  goldenBeach.receiveShadow = true;
-  worldGroup.add(goldenBeach);
-
-  // Main Stone Citadel Courtyard (r = 76m) so the ocean is visible from the entire city!
-  const earthContinent = new THREE.Mesh(new THREE.CylinderGeometry(76, 80, 2.2, 72), stoneCourtyardMat);
-  earthContinent.position.y = -1.1;
-  earthContinent.receiveShadow = true;
-  worldGroup.add(earthContinent);
-
-  // Northern Spaceport Peninsula & Causeway (0, 0, -88) extending into the northern sea
-  const northPeninsula = new THREE.Mesh(new THREE.CylinderGeometry(24, 29, 2.2, 48), stoneCourtyardMat);
-  northPeninsula.position.set(0, -1.1, -88);
-  northPeninsula.receiveShadow = true;
-  worldGroup.add(northPeninsula);
-
-  // 4 Lush Emerald Garden Terraces & Turquoise Reflecting Pools in the inner quadrants
-  [
-    [-22, -22],
-    [22, -22],
-    [-26, 26],
-    [26, 26]
-  ].forEach(([gx, gz]) => {
-    const gardenBorder = new THREE.Mesh(new THREE.CylinderGeometry(8.6, 9.2, 0.28, 32), polishedMarbleMat);
-    gardenBorder.position.set(gx, 0.14, gz);
-    gardenBorder.receiveShadow = true;
-    worldGroup.add(gardenBorder);
-
-    const grassLawn = new THREE.Mesh(new THREE.CylinderGeometry(8.1, 8.2, 0.32, 32), lushGrassMat);
-    grassLawn.position.set(gx, 0.16, gz);
-    grassLawn.receiveShadow = true;
-    worldGroup.add(grassLawn);
-
-    const poolBasin = new THREE.Mesh(
-      new THREE.CylinderGeometry(4.2, 4.2, 0.36, 24),
-      new THREE.MeshStandardMaterial({ color: 0x1098ad, roughness: 0.08, metalness: 0.35 })
-    );
-    poolBasin.position.set(gx, 0.18, gz);
-    worldGroup.add(poolBasin);
+  // Continuous 520m 3D terrain with BotW/Genshin rolling green hills,
+  // Prontera-style medieval village square, and No Man's Sky celestial stargate
+  const valleyData = buildAethelgardValley({
+    scene,
+    worldGroup,
+    baseMaterials: {
+      obsidianMat,
+      polishedMarbleMat,
+      ancientGoldMat,
+      hardwoodMat,
+      canopyGlassMat,
+      sandBeachMat,
+      lushGrassMat
+    },
+    addCylinderCollider,
+    addBoxCollider,
+    animatedWorldProps
   });
+  valleyTrainingDummies = valleyData.trainingDummies || [];
 
-  // 16 Warm-Lit Imperial Streetlamp Braziers along the Cardinal Boulevards
-  const lampCoords = [
-    [-5.4, 12], [5.4, 12], [-5.4, 30], [5.4, 30], [-5.4, 54], [5.4, 54],
-    [-5.4, -15], [5.4, -15], [-5.4, -32], [5.4, -32], [-5.4, -64], [5.4, -64],
-    [-25, -5.4], [-25, 5.4], [25, -5.4], [25, 5.4]
-  ];
-  lampCoords.forEach(([lx, lz]) => {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.22, 4.6, 12), obsidianMat);
-    post.position.set(lx, 2.3, lz);
-    post.castShadow = true;
-    worldGroup.add(post);
-
-    const lantern = new THREE.Mesh(
-      new THREE.SphereGeometry(0.36, 12, 12),
-      new THREE.MeshBasicMaterial({ color: 0xffd278 })
-    );
-    lantern.position.set(lx, 4.75, lz);
-    worldGroup.add(lantern);
-  });
-
-  // Floating Golden Aether Embers across the Citadel
-  const emberCount = 360;
+  // Floating Golden Aether Embers across the Valley
+  const emberCount = 280;
   const emberGeo = new THREE.BufferGeometry();
   const emberPos = new Float32Array(emberCount * 3);
   for (let i = 0; i < emberCount * 3; i += 3) {
-    emberPos[i] = (Math.random() - 0.5) * 220;
-    emberPos[i + 1] = 0.8 + Math.random() * 18;
-    emberPos[i + 2] = (Math.random() - 0.5) * 260;
+    emberPos[i] = (Math.random() - 0.5) * 160;
+    emberPos[i + 1] = 1.2 + Math.random() * 8;
+    emberPos[i + 2] = (Math.random() - 0.5) * 160;
   }
   emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
   aetherEmbers = new THREE.Points(
     emberGeo,
-    new THREE.PointsMaterial({ color: 0xffd278, size: 0.42, transparent: true, opacity: 0.78 })
+    new THREE.PointsMaterial({ color: 0xffd278, size: 0.38, transparent: true, opacity: 0.75 })
   );
   worldGroup.add(aetherEmbers);
 
-  // Outer Marble Perimeter Balustrade & 24 Colonnade Pillars (r = 56m) with SOLID COLLIDERS
-  const pillarGeo = new THREE.CylinderGeometry(1.05, 1.25, 11.5, 24);
-  const capGeo = new THREE.BoxGeometry(2.9, 0.8, 2.9);
-  for (let i = 0; i < 24; i++) {
-    const angle = (i / 24) * Math.PI * 2;
-    const deg = Math.round(THREE.MathUtils.radToDeg(angle)) % 90;
-    if (deg < 8 || deg > 82) continue;
-
-    const r = 56;
-    const px = Math.cos(angle) * r;
-    const pz = Math.sin(angle) * r;
-    const pillar = new THREE.Mesh(pillarGeo, polishedMarbleMat);
-    pillar.position.set(px, 5.75, pz);
-    pillar.castShadow = true;
-    pillar.receiveShadow = true;
-    worldGroup.add(pillar);
-
-    const cap = new THREE.Mesh(capGeo, polishedMarbleMat);
-    cap.position.set(px, 11.7, pz);
-    cap.castShadow = true;
-    worldGroup.add(cap);
-
-    addCylinderCollider(px, pz, 1.35, -2, 14);
-  }
-
-  // Dedicated Circular Asphalt & Gold GT Racing Circuit at r = 44m
-  const raceTrackMesh = new THREE.Mesh(new THREE.RingGeometry(40.2, 47.8, 64), asphaltTrackMat);
-  raceTrackMesh.rotation.x = -Math.PI / 2;
-  raceTrackMesh.position.y = 0.03;
-  raceTrackMesh.receiveShadow = true;
-  worldGroup.add(raceTrackMesh);
-
-  const innerCurb = new THREE.Mesh(new THREE.RingGeometry(39.8, 40.2, 64), ancientGoldMat);
-  innerCurb.rotation.x = -Math.PI / 2;
-  innerCurb.position.y = 0.05;
-  worldGroup.add(innerCurb);
-
-  const outerCurb = new THREE.Mesh(new THREE.RingGeometry(47.8, 48.2, 64), ancientGoldMat);
-  outerCurb.rotation.x = -Math.PI / 2;
-  outerCurb.position.y = 0.05;
-  worldGroup.add(outerCurb);
-
-  // 4 Cardinal Paved Obsidian & Gold Boulevards
-  const nsBoulevard = new THREE.Mesh(new THREE.BoxGeometry(9.5, 0.08, 130), obsidianMat);
-  nsBoulevard.position.set(0, 0.04, -30);
-  nsBoulevard.receiveShadow = true;
-  worldGroup.add(nsBoulevard);
-
-  const ewBoulevard = new THREE.Mesh(new THREE.BoxGeometry(160, 0.08, 9.5), obsidianMat);
-  ewBoulevard.position.set(0, 0.04, 0);
-  ewBoulevard.receiveShadow = true;
-  worldGroup.add(ewBoulevard);
-
-  // Central Plaza Octagon & Altar of Ascension (0, 0, 0)
-  const centralOctagon = new THREE.Mesh(new THREE.CylinderGeometry(12, 12.8, 0.18, 8), polishedMarbleMat);
-  centralOctagon.position.set(0, 0.09, 0);
-  centralOctagon.receiveShadow = true;
-  worldGroup.add(centralOctagon);
-
-  const altarBase = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 4.8, 1.8, 32), obsidianMat);
-  altarBase.position.set(0, 0.9, 0);
-  altarBase.castShadow = true;
-  altarBase.receiveShadow = true;
-  worldGroup.add(altarBase);
-  addCylinderCollider(0, 0, 4.6, -2, 8);
-
+  // Mystic Torus Knot Relic gracefully hovering above the Central Marble Fountain
   const ascensionSphere = new THREE.Mesh(new THREE.TorusKnotGeometry(1.35, 0.32, 128, 32), ancientGoldMat);
-  ascensionSphere.position.set(0, 4.5, 0);
+  ascensionSphere.position.set(0, 5.6, 0);
   ascensionSphere.castShadow = true;
   worldGroup.add(ascensionSphere);
-  animatedRelics.push({ mesh: ascensionSphere, baseY: 4.5 });
+  animatedRelics.push({ mesh: ascensionSphere, baseY: 5.6 });
 
   createDiegeticWayfinder(
-    'ALTAR DE LA ASCENSIÓN & FORJA [F]',
-    'Centro de Aethelgard • Carta Estelar [M] o Forja (+15 & Alas)',
-    new THREE.Vector3(0, 7.6, 0),
+    'FUENTE DE AETHELGARD & FORJA [F]',
+    'Plaza Mayor del Valle • Carta Estelar [M] o Forja (+15 & Alas)',
+    new THREE.Vector3(0, 8.2, 0),
     48
   );
-
-  // South Arrival Plaza & Showcase Pedestal (0, 0, 18)
-  const spawnPedestal = new THREE.Mesh(new THREE.CylinderGeometry(2.0, 2.4, 0.16, 32), obsidianMat);
-  spawnPedestal.position.set(0, 0.08, 18);
-  spawnPedestal.receiveShadow = true;
-  worldGroup.add(spawnPedestal);
-
-  const spawnRing = new THREE.Mesh(new THREE.TorusGeometry(2.1, 0.05, 16, 48), ancientGoldMat);
-  spawnRing.rotation.x = Math.PI / 2;
-  spawnRing.position.set(0, 0.17, 18);
-  worldGroup.add(spawnRing);
 
   // --------------------------------------------------------------------------
   // NORTH AXIS (0, 0, -45): TEMPLE OF THE AI ARCHON & SPACEPORT (0, 0, -88)
@@ -2954,15 +2837,15 @@ function spawnFloatingCombatText(worldPos, text, isCrit = false, color = '#ffe2a
 // LOCAL PLAYER, MOUNTS & PLANETARY GRAVITY FLOOR CALCULATION
 // ============================================================================
 let localAvatar = null;
-const playerPos = new THREE.Vector3(0, 0, 18);
+const playerPos = new THREE.Vector3(-28, getEarthTerrainElevation(-28, 42), 42);
 const playerVel = new THREE.Vector3();
 window.playerPos = playerPos;
 window.playerVel = playerVel;
 window.__teleportTo = (x, y, z) => { playerPos.set(x, y, z); playerVel.set(0, 0, 0); };
-let playerYaw = 0;
-let prevPlayerYaw = 0;
-let cameraYaw = 0;
-let cameraPitch = 0.24;
+let playerYaw = Math.PI - 0.39;
+let prevPlayerYaw = Math.PI - 0.39;
+let cameraYaw = -0.39;
+let cameraPitch = 0.22;
 let isGrounded = true;
 let emoteTimer = 0;
 
@@ -3020,9 +2903,8 @@ function requestMountEquipOrBuy(mType) {
 }
 
 function isOnEarthLandmass(x, z) {
-  if (Math.hypot(x, z) < 88) return true; // Main Citadel & Golden Beach
+  if (Math.hypot(x, z) < 250 && getEarthTerrainElevation(x, z) > 0.0) return true;
   if (Math.abs(x) < 6 && z >= 65 && z <= 104) return true; // South Harbor Pier
-  if (Math.hypot(x, z - (-88)) < 26) return true; // North Spaceport Peninsula
   if (Math.hypot(x, z - 185) < 34) return true; // Archipelago Island 1: Dragon Island
   if (Math.hypot(x - 165, z - 110) < 27) return true; // Archipelago Island 2: Golden Reef
   return false;
@@ -3032,8 +2914,12 @@ function getLocalGroundHeight(x, z) {
   if (Math.hypot(x - 0, z - (-680)) < 60) return 260;
   if (Math.hypot(x - (-620), z - (-1100)) < 70) return 340;
   if (Math.hypot(x - 680, z - (-1350)) < 74) return 440;
-  if (!isOnEarthLandmass(x, z)) return -0.25; // Ocean surface level
-  return 0;
+  if (Math.hypot(x, z - 185) < 34) return 0; // Dragon Island
+  if (Math.hypot(x - 165, z - 110) < 27) return 0; // Golden Reef
+  if (Math.hypot(x, z) < 260) {
+    return getEarthTerrainElevation(x, z);
+  }
+  return -0.25; // Ocean surface level
 }
 
 function getCurrentPlanetLabel(x, y, z) {
@@ -3044,7 +2930,7 @@ function getCurrentPlanetLabel(x, y, z) {
   if (Math.hypot(x, z - 185) < 42) return 'ISLA DEL DRAGÓN';
   if (Math.hypot(x - 165, z - 110) < 35) return 'ARRECIFE DORADO';
   if (!isOnEarthLandmass(x, z)) return 'OCÉANO IMPERIAL';
-  return 'SANTUARIO SOLAR';
+  return 'VALLE DE AETHELGARD';
 }
 
 // ============================================================================
@@ -3283,6 +3169,9 @@ window.addEventListener('keydown', (e) => {
     document.getElementById('forge-modal').classList.toggle('hidden');
   }
   if (e.code === 'KeyO') openArchonModal();
+  if (e.code === 'KeyH') {
+    document.getElementById('quick-mounts-dock')?.classList.toggle('collapsed');
+  }
   if (e.code === 'Digit1') requestMountEquipOrBuy('horse');
   if (e.code === 'Digit2') requestMountEquipOrBuy('supercar');
   if (e.code === 'Digit3') requestMountEquipOrBuy('mythic_bird');
@@ -4207,6 +4096,13 @@ function spawnShockwave(centerPos, colorHex = 0xffcf70) {
   activeShockwaves.push({ mesh, scale: 1, opacity: 0.85 });
 }
 
+function openAlistairDialogue() {
+  const modal = document.getElementById('dialogue-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  sfx.levelUp();
+}
+
 function triggerAetherStrike() {
   attackTimer = 0.42;
   const usingShot = state.soulshotsActive && (state.inventory?.soulshots || 0) > 0;
@@ -4222,6 +4118,28 @@ function triggerAetherStrike() {
   const strikeDir = new THREE.Vector3(-Math.sin(playerYaw), 0.2, -Math.cos(playerYaw));
   const strikePos = playerPos.clone().addScaledVector(strikeDir, 1.8).add(new THREE.Vector3(0, 1.1, 0));
   combatFeedback.spawnDirectionalHitSparks(strikePos, strikeDir, false, usingShot, 14);
+
+  // Check collision with training dummies in the combat grounds
+  for (const dummy of valleyTrainingDummies) {
+    const distToDummy = Math.hypot(playerPos.x - dummy.x, playerPos.z - dummy.z);
+    if (distToDummy < 4.2) {
+      dummy.wobbleTime = 0.35;
+      dummy.hitsRemaining = Math.max(0, dummy.hitsRemaining - 1);
+
+      const sparkPos = new THREE.Vector3(dummy.x, dummy.y + 1.8, dummy.z);
+      combatFeedback.spawnImpactSparks(sparkPos, 0xffd278, 14);
+      combatFeedback.spawnShockwave(sparkPos, 0x6ce5ff, 3.8);
+      combatFeedback.addScreenShake(0.06);
+
+      const hitDmg = Math.floor(135 + Math.random() * 45);
+      spawnFloatingCombatText(new THREE.Vector3(dummy.x, dummy.y + 2.4, dummy.z), `CRIT +${hitDmg}!`, true, '#ffd278');
+      sfx.strike({ isCrit: true, usingSoulshot: usingShot });
+
+      // Update onboarding tutorial objective
+      checkBountyObjective('dummy_strike');
+      break;
+    }
+  }
 
   if (ws && ws.readyState === 1) {
     ws.send(JSON.stringify({ t: 'aether_strike' }));
@@ -4249,6 +4167,26 @@ function checkInteractions() {
   const btn = document.getElementById('context-action-btn');
   const txt = document.getElementById('context-action-text');
   activeContextFn = null;
+
+  // 1. Check interaction with Comandante Alistair (-21, y, 25)
+  const distToAlistair = Math.hypot(playerPos.x - (-21), playerPos.z - 25);
+  if (distToAlistair < 3.8) {
+    txt.textContent = 'Hablar con Comandante Alistair [E]';
+    btn.classList.remove('hidden');
+    activeContextFn = () => openAlistairDialogue();
+    return;
+  }
+
+  // 2. Check proximity to Training Dummies (Combat Grounds)
+  for (const dummy of valleyTrainingDummies) {
+    const distToDummy = Math.hypot(playerPos.x - dummy.x, playerPos.z - dummy.z);
+    if (distToDummy < 4.2) {
+      txt.textContent = 'Golpear Maniquí de Combate [Q]';
+      btn.classList.remove('hidden');
+      activeContextFn = () => triggerAetherStrike();
+      return;
+    }
+  }
 
   // Check if close to an alive Monster or Raid Boss to show Attack Hint
   for (const [, mob] of monsterEntities) {
@@ -4531,6 +4469,20 @@ function updateEquipmentFrame() {
 // ============================================================================
 const bountyQuests = [
   {
+    id: 'bounty_tutorial_valley',
+    category: 'INICIACIÓN • VALLE DE AETHELGARD',
+    title: 'Instrucción de Combate de Alistair',
+    desc: 'Habla con el Comandante Alistair [E] y asesta 3 golpes a los maniquíes de combate con tu Hoja de Éter [Q].',
+    type: 'dummy_strike',
+    targetName: 'Maniquíes de Combate',
+    required: 3,
+    targetCoords: { x: -21, y: 1.5, z: 25 },
+    rewardCoins: 500,
+    rewardXp: 350,
+    rewardItem: 'bless',
+    rewardText: '+500 ✦ • +350 XP • 💎 Joya de la Bendición'
+  },
+  {
     id: 'bounty_sentinels',
     category: 'TIER I • SANTUARIO SOLAR',
     title: 'Purga de Centinelas Corruptos',
@@ -4657,7 +4609,10 @@ function checkBountyObjective(type, data = {}) {
   const q = bountyQuests[idx];
 
   let completedStep = false;
-  if (q.type === 'kill' && type === 'kill') {
+  if (q.type === 'dummy_strike' && type === 'dummy_strike') {
+    state.bountyProgress = (state.bountyProgress || 0) + 1;
+    completedStep = true;
+  } else if (q.type === 'kill' && type === 'kill') {
     if (q.targetMobIds.includes(data.mobId) || (data.mobRank === 'boss' && q.targetMobIds.some(id => id.includes('boss')))) {
       state.bountyProgress = (state.bountyProgress || 0) + 1;
       completedStep = true;
@@ -5096,6 +5051,26 @@ document.getElementById('btn-copy-link').addEventListener('click', () => {
   }, 2000);
 });
 
+// Comandante Alistair Narrative Dialogue & Fleet Dock Toggles
+document.getElementById('btn-close-dialogue')?.addEventListener('click', () => {
+  document.getElementById('dialogue-modal')?.classList.add('hidden');
+});
+document.getElementById('btn-dialogue-close-opt')?.addEventListener('click', () => {
+  document.getElementById('dialogue-modal')?.classList.add('hidden');
+});
+document.getElementById('btn-accept-tutorial')?.addEventListener('click', () => {
+  document.getElementById('dialogue-modal')?.classList.add('hidden');
+  sfx.levelUp();
+  showToast('INICIACIÓN EN AETHELGARD', '¡Misión aceptada! Empuña la Hoja de Éter y asesta 3 golpes a los maniquíes de combate [Q].');
+  state.gearLevel = Math.max(1, state.gearLevel || 1);
+  saveLocalState();
+  updateHUD();
+});
+document.getElementById('btn-toggle-fleet')?.addEventListener('click', () => {
+  document.getElementById('quick-mounts-dock')?.classList.toggle('collapsed');
+  sfx.shard();
+});
+
 // Live 3D Character Showcase Selector Cards
 document.querySelectorAll('#avatar-selector .class-card[data-avatar]').forEach((card) => {
   card.addEventListener('click', () => {
@@ -5135,7 +5110,10 @@ document.getElementById('btn-start-world').addEventListener('click', async () =>
 
   await preloadCoreModels();
   state.joined = true;
-  playerYaw = Math.PI;
+  playerPos.set(-28, getEarthTerrainElevation(-28, 42), 42);
+  playerYaw = Math.PI - 0.39;
+  cameraYaw = -0.39;
+  cameraPitch = 0.22;
   rebuildLocalAvatar();
 
   if (ws && ws.readyState === 1) {
@@ -5199,6 +5177,17 @@ function animate() {
   }
 
   updateWorldArchitectureAnimations(animatedWorldProps, dt, elapsed);
+
+  // Update Training Dummy Wobble Animation
+  for (const dummy of valleyTrainingDummies) {
+    if (dummy.wobbleTime > 0) {
+      dummy.wobbleTime -= dt;
+      const wobbleFactor = Math.sin(dummy.wobbleTime * 32.0) * (dummy.wobbleTime / 0.35) * 0.22;
+      dummy.group.rotation.z = wobbleFactor;
+    } else {
+      dummy.group.rotation.z = 0;
+    }
+  }
 
   if (aetherEmbers) {
     aetherEmbers.rotation.y += dt * 0.02;
@@ -5358,7 +5347,7 @@ function animate() {
     }
 
     sky.visible = playerPos.y < 135;
-    scene.fog.density = playerPos.y < 135 ? 0.0018 : 0.00012;
+    scene.fog.density = playerPos.y < 135 ? 0.00085 : 0.00010;
 
     const waveBobY = state.mountType === 'ship' ? Math.sin(elapsed * 2.3) * 0.16 : 0;
     localAvatar.root.position.set(playerPos.x, playerPos.y + waveBobY, playerPos.z);
@@ -5424,13 +5413,13 @@ function animate() {
     }
   } else {
     if (localAvatar) {
-      localAvatar.root.position.set(0, 0.18, 18);
-      localAvatar.root.rotation.y = Math.sin(elapsed * 0.5) * 0.32;
+      localAvatar.root.position.set(-28, getEarthTerrainElevation(-28, 42), 42);
+      localAvatar.root.rotation.y = -0.39 + Math.sin(elapsed * 0.5) * 0.15;
       updateAvatarAnimationAndPose(localAvatar, dt, 'Idle');
     }
-    const camX = Math.sin(elapsed * 0.22) * 1.1;
-    camera.position.set(camX, 2.25, 22.6);
-    camera.lookAt(0, 1.75, 18);
+    const camX = -28 + Math.sin(elapsed * 0.22) * 1.8;
+    camera.position.set(camX, getEarthTerrainElevation(-28, 42) + 2.2, 45.8);
+    camera.lookAt(-21, getEarthTerrainElevation(-21, 25) + 1.8, 25);
   }
 
   for (const [, rem] of remotePlayers) {

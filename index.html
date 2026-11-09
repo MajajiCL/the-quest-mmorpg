@@ -254,48 +254,53 @@
       </div>
 
       <!-- 5-Tier Fleet Dock + Soulshot & Potion Quick Toggles -->
-      <div class="quick-mounts-dock">
-        <button id="btn-mount-horse" class="mount-btn" title="Corcel Imperial (Gratis • Tecla 1)">
-          <span class="slot-key">1</span>
-          <svg viewBox="0 0 24 24"><path d="M19 7l-3-4-4 2-2 4-5 2-2 5h4l2-3 4 1 2 5h3l1-8 2-2z"/></svg>
-          <span class="slot-label">CORCEL</span>
+      <div class="dock-wrapper">
+        <button id="btn-toggle-fleet" class="fleet-toggle-pill" title="Alternar Barra de Flota y Monturas [H]">
+          <span>🚀 FLOTA & MONTURAS [H]</span>
         </button>
+        <div id="quick-mounts-dock" class="quick-mounts-dock">
+          <button id="btn-mount-horse" class="mount-btn" title="Corcel Imperial (Gratis • Tecla 1)">
+            <span class="slot-key">1</span>
+            <svg viewBox="0 0 24 24"><path d="M19 7l-3-4-4 2-2 4-5 2-2 5h4l2-3 4 1 2 5h3l1-8 2-2z"/></svg>
+            <span class="slot-label">CORCEL</span>
+          </button>
 
-        <button id="btn-mount-car" class="mount-btn" title="Supercar GT Roadster (400 ✦ • Tecla 2)">
-          <span class="slot-key">2</span>
-          <svg viewBox="0 0 24 24"><path d="M5 17h14v-5l-2-4H7L5 12v5z"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg>
-          <span class="slot-label">SUPERCAR</span>
-        </button>
+          <button id="btn-mount-car" class="mount-btn" title="Supercar GT Roadster (400 ✦ • Tecla 2)">
+            <span class="slot-key">2</span>
+            <svg viewBox="0 0 24 24"><path d="M5 17h14v-5l-2-4H7L5 12v5z"/><circle cx="7.5" cy="17" r="2"/><circle cx="16.5" cy="17" r="2"/></svg>
+            <span class="slot-label">SUPERCAR</span>
+          </button>
 
-        <button id="btn-mount-bird" class="mount-btn" title="Ave Mítica Solar (650 ✦ • Tecla 3)">
-          <span class="slot-key">3</span>
-          <svg viewBox="0 0 24 24"><path d="M2 12c4-5 9-6 10-2 1-4 6-3 10 2-4 1-8 3-10 6-2-3-6-5-10-6z"/></svg>
-          <span class="slot-label">AVE SOLAR</span>
-        </button>
+          <button id="btn-mount-bird" class="mount-btn" title="Ave Mítica Solar (650 ✦ • Tecla 3)">
+            <span class="slot-key">3</span>
+            <svg viewBox="0 0 24 24"><path d="M2 12c4-5 9-6 10-2 1-4 6-3 10 2-4 1-8 3-10 6-2-3-6-5-10-6z"/></svg>
+            <span class="slot-label">AVE SOLAR</span>
+          </button>
 
-        <button id="btn-mount-jet" class="mount-btn" title="Caza Supersónico (1,200 ✦ • Tecla 4)">
-          <span class="slot-key">4</span>
-          <svg viewBox="0 0 24 24"><path d="M12 2L8 10 2 14l6 2 4 6 4-6 6-2-6-4-4-8z"/></svg>
-          <span class="slot-label">CAZA</span>
-        </button>
+          <button id="btn-mount-jet" class="mount-btn" title="Caza Supersónico (1,200 ✦ • Tecla 4)">
+            <span class="slot-key">4</span>
+            <svg viewBox="0 0 24 24"><path d="M12 2L8 10 2 14l6 2 4 6 4-6 6-2-6-4-4-8z"/></svg>
+            <span class="slot-label">CAZA</span>
+          </button>
 
-        <button id="btn-mount-starship" class="mount-btn accent" title="Crucero Interplanetario (2,500 ✦ • Tecla 5)">
-          <span class="slot-key">5</span>
-          <svg viewBox="0 0 24 24"><path d="M12 2c4 4 5 9 5 14l3 3-4 1-4 2-4-2-4-1 3-3c0-5 1-10 5-14z"/><circle cx="12" cy="11" r="2"/></svg>
-          <span class="slot-label">CRUCERO</span>
-        </button>
+          <button id="btn-mount-starship" class="mount-btn accent" title="Crucero Interplanetario (2,500 ✦ • Tecla 5)">
+            <span class="slot-key">5</span>
+            <svg viewBox="0 0 24 24"><path d="M12 2c4 4 5 9 5 14l3 3-4 1-4 2-4-2-4-1 3-3c0-5 1-10 5-14z"/><circle cx="12" cy="11" r="2"/></svg>
+            <span class="slot-label">CRUCERO</span>
+          </button>
 
-        <button id="btn-mount-ship" class="mount-btn" title="Galeón Naval de 3 Mástiles (Gratis en Puerto Sur • Tecla 6)">
-          <span class="slot-key">6</span>
-          <svg viewBox="0 0 24 24"><path d="M2 18h20l-3 4H5l-3-4zM12 2v14M12 3l8 6-8 2M12 5L5 11l7 2"/></svg>
-          <span class="slot-label">GALEÓN</span>
-        </button>
+          <button id="btn-mount-ship" class="mount-btn" title="Galeón Naval de 3 Mástiles (Gratis en Puerto Sur • Tecla 6)">
+            <span class="slot-key">6</span>
+            <svg viewBox="0 0 24 24"><path d="M2 18h20l-3 4H5l-3-4zM12 2v14M12 3l8 6-8 2M12 5L5 11l7 2"/></svg>
+            <span class="slot-label">GALEÓN</span>
+          </button>
 
-        <button id="btn-soulshot" class="mount-btn active" title="Cargas de Resonancia de Éter (Daño x1.85 • Tecla X)">
-          <span class="slot-key">X</span>
-          <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          <span id="hud-shots-count" class="slot-label">180⚡</span>
-        </button>
+          <button id="btn-soulshot" class="mount-btn active" title="Cargas de Resonancia de Éter (Daño x1.85 • Tecla X)">
+            <span class="slot-key">X</span>
+            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span id="hud-shots-count" class="slot-label">180⚡</span>
+          </button>
+        </div>
       </div>
 
       <!-- Tactical Combat & Flight Altitude Wheel -->
@@ -738,6 +743,36 @@
       <div class="photo-buttons">
         <button id="btn-copy-link" class="btn-luxury-enter compact">Copiar Enlace</button>
         <a id="btn-download-photo" class="btn-luxury-enter compact" download="the-quest-world.png">Guardar PNG</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- AAA NARRATIVE NPC DIALOGUE MODAL (COMANDANTE ALISTAIR) -->
+  <div id="dialogue-modal" class="drawer-backdrop hidden">
+    <div class="drawer-card dialogue-card">
+      <div class="drawer-header">
+        <div class="npc-header-info">
+          <span class="npc-rank-badge">COMANDANTE DE LA GUARDIA</span>
+          <h3 id="npc-dialogue-name">Alistair de Aethelgard</h3>
+        </div>
+        <button id="btn-close-dialogue" class="close-x">✕</button>
+      </div>
+      <div class="dialogue-body">
+        <div class="npc-portrait-wrap">
+          <div class="npc-avatar-crest">⚔️</div>
+        </div>
+        <div class="npc-dialogue-speech">
+          <p id="npc-dialogue-text">«¡Saludos, viajero! Bienvenido al Valle de Aethelgard. Las fuerzas oscuras acechan más allá de nuestras murallas y necesitamos espadachines diestros. Toma esta Hoja de Éter y pon a prueba tu filo contra los 3 maniquíes de combate en el patio de armas.»</p>
+          <div class="dialogue-quest-reward-preview">
+            <span class="reward-tag">Recompensa: <b>+500 ✦ Éter</b></span>
+            <span class="reward-tag">Experiencia: <b>+350 XP</b></span>
+            <span class="reward-tag">Objetivo: <b>Golpea 3 maniquíes [Q]</b></span>
+          </div>
+        </div>
+      </div>
+      <div class="dialogue-actions">
+        <button id="btn-accept-tutorial" class="btn-luxury-enter compact">Aceptar Misión y Tomar la Hoja</button>
+        <button id="btn-dialogue-close-opt" class="btn-subtle-close">Explorar por mi cuenta</button>
       </div>
     </div>
   </div>

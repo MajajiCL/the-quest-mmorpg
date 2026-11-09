@@ -170,6 +170,10 @@ export class CombatFeedbackSystem {
     }
   }
 
+  spawnImpactSparks(pos, colorHex = 0xffd278, count = 16) {
+    this.spawnExplosiveBurst(pos, colorHex, count);
+  }
+
   spawnHitSlashArc(centerPos, hitDir, isCrit, isSoulshot) {
     const arcGeo = new THREE.RingGeometry(0.8, 1.25, 16, 1, 0, Math.PI * 0.85);
     const colorHex = isSoulshot ? 0x6ce5ff : (isCrit ? 0xffdf55 : 0xff7722);
